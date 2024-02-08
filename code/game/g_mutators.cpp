@@ -16,16 +16,19 @@ static const std::vector<mutator_e> allowedMutators = {
 	// MUTATOR_JAWAINVASION,
 	// MUTATOR_PEACEANDQUIET,
 	// MUTATOR_FAMOUS,
-	MUTATOR_ROSHINVASION,
-	MUTATOR_SPLIT,
-	MUTATOR_DRUNK,
-	MUTATOR_GIANTS,
-	MUTATOR_INCLEMENTWEATHER,
+	// MUTATOR_ROSHINVASION,
+	// MUTATOR_SPLIT,
+	// MUTATOR_DRUNK,
+	// MUTATOR_GIANTS,
+	// MUTATOR_INCLEMENTWEATHER,
 	// MUTATOR_PARANOIA,
 	// MUTATOR_DICKBUTT,
-	MUTATOR_SPINNYCAM,
-	MUTATOR_RANDOMBOSSFIGHT,
-
+	// MUTATOR_SPINNYCAM,
+	// MUTATOR_RANDOMBOSSFIGHT,
+	// MUTATOR_MOUSEBLASTERS,
+	MUTATOR_BOUNCYSANDCREATURES,
+	MUTATOR_SLIPPERYSLOPE,
+	MUTATOR_SECONDPERSONCAM,
 };
 
 // pick a random mutator that we're not currently on
@@ -216,6 +219,10 @@ static const struct mutatorFuncs_t {
 	{nullptr, nullptr, nullptr},							 // MUTATOR_DICKBUTT
 	{nullptr, nullptr, nullptr},							 // MUTATOR_SPINNYCAM
 	{Begin_RandomBossFight, nullptr, nullptr},				 // MUTATOR_RANDOMBOSSFIGHT
+	{nullptr, nullptr, nullptr},				 			 // MUTATOR_MOUSEBLASTERS
+	{nullptr, nullptr, nullptr},				 			 // MUTATOR_BOUNCYSANDCREATURES
+	{nullptr, nullptr, nullptr},				 			 // MUTATOR_SLIPPERYSLOPE
+	{nullptr, nullptr, nullptr},				 			 // MUTATOR_SECONDPERSONCAM
 };
 
 void Mutator_CheckUpdate() {

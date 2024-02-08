@@ -709,6 +709,10 @@ static void PM_Friction( void ) {
 		drop += speed*pm_flightfriction*pml.frametime;
 	}
 
+	if ( BG_GetCurrentMutator() == MUTATOR_SLIPPERYSLOPE ) {
+		drop = speed*pml.frametime;
+	}
+
 	// scale the velocity
 	newspeed = speed - drop;
 	if (newspeed < 0)
