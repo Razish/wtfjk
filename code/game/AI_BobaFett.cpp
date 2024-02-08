@@ -426,7 +426,7 @@ void Boba_FlyStart( gentity_t *self )
 		self->s.loopSound = G_SoundIndex( "sound/chars/boba/bf_jetpack_lp.wav" );
 		if ( self->NPC )
 		{
-			self->count = Q3_INFINITE; // SEEKER shot ammo count
+			self->count = 1024; // SEEKER shot ammo count
 		}
 	}
 }
