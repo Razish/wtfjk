@@ -23,20 +23,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "../cgame/cg_local.h"
 #include "Q3_Interface.h"
+#include "bg_mutators.h"
 #include "g_local.h"
 #include "g_functions.h"
 
 extern cvar_t *g_spskill;
 extern cvar_t *g_delayedShutdown;
-
-// these vars I moved here out of the level_locals_t struct simply because it's pointless to try saving them,
-//	and the level_locals_t struct is included in the save process... -slc
-//
-qboolean	spawning = qfalse;				// the G_Spawn*() functions are valid  (only turned on during one function)
-int			numSpawnVars;
-char		*spawnVars[MAX_SPAWN_VARS][2];	// key / value pairs
-int			numSpawnVarChars;
-char		spawnVarChars[MAX_SPAWN_VARS_CHARS];
 
 int			delayedShutDown = 0;
 
@@ -52,27 +44,27 @@ void AddSpawnField(char *field, char *value)
 {
 	int	i;
 
-	for(i=0;i<numSpawnVars;i++)
+	for(i=0;i<level.numSpawnVars;i++)
 	{
-		if (Q_stricmp(spawnVars[i][0], field) == 0)
+		if (Q_stricmp(level.spawnVars[i][0], field) == 0)
 		{
-			spawnVars[ i ][1] = G_AddSpawnVarToken( value );
+			level.spawnVars[ i ][1] = G_AddSpawnVarToken( value );
 			return;
 		}
 	}
 
-	spawnVars[ numSpawnVars ][0] = G_AddSpawnVarToken( field );
-	spawnVars[ numSpawnVars ][1] = G_AddSpawnVarToken( value );
-	numSpawnVars++;
+	level.spawnVars[ level.numSpawnVars ][0] = G_AddSpawnVarToken( field );
+	level.spawnVars[ level.numSpawnVars ][1] = G_AddSpawnVarToken( value );
+	level.numSpawnVars++;
 }
 
 qboolean	G_SpawnField( unsigned int uiField, char **ppKey, char **ppValue )
 {
-	if ( (int)uiField >= numSpawnVars )
+	if ( (int)uiField >= level.numSpawnVars )
 		return qfalse;
 
-	(*ppKey) = spawnVars[uiField][0];
-	*ppValue = spawnVars[uiField][1];
+	(*ppKey) = level.spawnVars[uiField][0];
+	*ppValue = level.spawnVars[uiField][1];
 
 	return qtrue;
 }
@@ -80,14 +72,14 @@ qboolean	G_SpawnField( unsigned int uiField, char **ppKey, char **ppValue )
 qboolean	G_SpawnString( const char *key, const char *defaultString, char **out ) {
 	int		i;
 
-	if ( !spawning ) {
+	if ( !level.spawning ) {
 		*out = (char *)defaultString;
-//		G_Error( "G_SpawnString() called while not spawning" );
+//		G_Error( "G_SpawnString() called while not level.spawning" );
 	}
 
-	for ( i = 0 ; i < numSpawnVars ; i++ ) {
-		if ( !Q_stricmp( key, spawnVars[i][0] ) ) {
-			*out = spawnVars[i][1];
+	for ( i = 0 ; i < level.numSpawnVars ; i++ ) {
+		if ( !Q_stricmp( key, level.spawnVars[i][0] ) ) {
+			*out = level.spawnVars[i][1];
 			return qtrue;
 		}
 	}
@@ -135,12 +127,12 @@ qboolean	G_SpawnVector4( const char *key, const char *defaultString, float *out 
 qboolean	G_SpawnFlag( const char *key, int flag, int *out )
 {
 	//find that key
-	for ( int i = 0 ; i < numSpawnVars ; i++ )
+	for ( int i = 0 ; i < level.numSpawnVars ; i++ )
 	{
-		if ( !strcmp( key, spawnVars[i][0] ) )
+		if ( !strcmp( key, level.spawnVars[i][0] ) )
 		{
 			//found the key
-			if ( atoi( spawnVars[i][1] ) != 0 )
+			if ( atoi( level.spawnVars[i][1] ) != 0 )
 			{//if it's non-zero, and in the flag
 				*out |= flag;
 			}
@@ -179,7 +171,7 @@ stringID_table_t flagTable [] =
 };
 
 //
-// fields are needed for spawning from the entity string
+// fields are needed for level.spawning from the entity string
 //
 typedef enum {
 	F_INT,
@@ -1079,7 +1071,7 @@ extern cvar_t	*com_buildScript;
 G_SpawnGEntityFromSpawnVars
 
 Spawn an entity and fill in all of the level fields from
-level.spawnVars[], then call the class specfic spawn function
+level.level.spawnVars[], then call the class specfic spawn function
 ===================
 */
 
@@ -1090,8 +1082,8 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	// get the next free entity
 	ent = G_Spawn();
 
-	for ( i = 0 ; i < numSpawnVars ; i++ ) {
-		G_ParseField( spawnVars[i][0], spawnVars[i][1], ent );
+	for ( i = 0 ; i < level.numSpawnVars ; i++ ) {
+		G_ParseField( level.spawnVars[i][0], level.spawnVars[i][1], ent );
 	}
 
 	G_SpawnInt( "notsingle", "0", &i );
@@ -1104,7 +1096,7 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->s.origin, ent->currentOrigin );
 
-	// if we didn't get a classname, don't bother spawning anything
+	// if we didn't get a classname, don't bother level.spawning anything
 	if ( !G_CallSpawn( ent ) ) {
 		G_FreeEntity( ent );
 		return;
@@ -1132,8 +1124,8 @@ void G_SpawnSubBSPGEntityFromSpawnVars( vec3_t posOffset, vec3_t angOffset ) {
 	// get the next free entity
 	ent = G_Spawn();
 
-	for ( i = 0 ; i < numSpawnVars ; i++ ) {
-		G_ParseField( spawnVars[i][0], spawnVars[i][1], ent );
+	for ( i = 0 ; i < level.numSpawnVars ; i++ ) {
+		G_ParseField( level.spawnVars[i][0], level.spawnVars[i][1], ent );
 	}
 
 	G_SpawnInt( "notsingle", "0", &i );
@@ -1152,7 +1144,7 @@ void G_SpawnSubBSPGEntityFromSpawnVars( vec3_t posOffset, vec3_t angOffset ) {
 	VectorCopy( ent->s.origin, ent->s.pos.trBase );
 	VectorCopy( ent->s.origin, ent->currentOrigin );
 
-	// if we didn't get a classname, don't bother spawning anything
+	// if we didn't get a classname, don't bother level.spawning anything
 	if ( !G_CallSpawn( ent ) ) {
 		G_FreeEntity( ent );
 		return;
@@ -1185,14 +1177,14 @@ char *G_AddSpawnVarToken( const char *string ) {
 	char	*dest;
 
 	l = strlen( string );
-	if ( numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS ) {
+	if ( level.numSpawnVarChars + l + 1 > MAX_SPAWN_VARS_CHARS ) {
 		G_Error( "G_AddSpawnVarToken: MAX_SPAWN_VARS" );
 	}
 
-	dest = spawnVarChars + numSpawnVarChars;
+	dest = level.spawnVarChars + level.numSpawnVarChars;
 	memcpy( dest, string, l+1 );
 
-	numSpawnVarChars += l + 1;
+	level.numSpawnVarChars += l + 1;
 
 	return dest;
 }
@@ -1202,7 +1194,7 @@ char *G_AddSpawnVarToken( const char *string ) {
 G_ParseSpawnVars
 
 Parses a brace bounded set of key / value pairs out of the
-level's entity strings into level.spawnVars[]
+level's entity strings into level.level.spawnVars[]
 
 This does not actually spawn an entity.
 ====================
@@ -1211,8 +1203,8 @@ qboolean G_ParseSpawnVars( const char **data ) {
 	char		keyname[MAX_STRING_CHARS];
 	const char	*com_token;
 
-	numSpawnVars = 0;
-	numSpawnVarChars = 0;
+	level.numSpawnVars = 0;
+	level.numSpawnVarChars = 0;
 
 	// parse the opening brace
 	COM_BeginParseSession();
@@ -1252,13 +1244,13 @@ qboolean G_ParseSpawnVars( const char **data ) {
 			COM_EndParseSession();
 			G_Error( "G_ParseSpawnVars: closing brace without data" );
 		}
-		if ( numSpawnVars == MAX_SPAWN_VARS ) {
+		if ( level.numSpawnVars == MAX_SPAWN_VARS ) {
 			COM_EndParseSession();
 			G_Error( "G_ParseSpawnVars: MAX_SPAWN_VARS" );
 		}
-		spawnVars[ numSpawnVars ][0] = G_AddSpawnVarToken( keyname );
-		spawnVars[ numSpawnVars ][1] = G_AddSpawnVarToken( com_token );
-		numSpawnVars++;
+		level.spawnVars[ level.numSpawnVars ][0] = G_AddSpawnVarToken( keyname );
+		level.spawnVars[ level.numSpawnVars ][1] = G_AddSpawnVarToken( com_token );
+		level.numSpawnVars++;
 	}
 
 	COM_EndParseSession();
@@ -1460,19 +1452,19 @@ void SP_worldspawn( void ) {
 
 	g_entities[ENTITYNUM_WORLD].max_health = 0;
 
-	for ( i = 0 ; i < numSpawnVars ; i++ )
+	for ( i = 0 ; i < level.numSpawnVars ; i++ )
 	{
-		if ( Q_stricmp( "spawnscript", spawnVars[i][0] ) == 0 )
+		if ( Q_stricmp( "spawnscript", level.spawnVars[i][0] ) == 0 )
 		{//ONly let them set spawnscript, we don't want them setting an angle or something on the world.
-			G_ParseField( spawnVars[i][0], spawnVars[i][1], &g_entities[ENTITYNUM_WORLD] );
+			G_ParseField( level.spawnVars[i][0], level.spawnVars[i][1], &g_entities[ENTITYNUM_WORLD] );
 		}
-		if ( Q_stricmp( "region", spawnVars[i][0] ) == 0 )
+		if ( Q_stricmp( "region", level.spawnVars[i][0] ) == 0 )
 		{
-			g_entities[ENTITYNUM_WORLD].s.radius = atoi(spawnVars[i][1]);
+			g_entities[ENTITYNUM_WORLD].s.radius = atoi(level.spawnVars[i][1]);
 		}
-		if ( Q_stricmp( "distancecull", spawnVars[i][0] ) == 0 )
+		if ( Q_stricmp( "distancecull", level.spawnVars[i][0] ) == 0 )
 		{
-			g_entities[ENTITYNUM_WORLD].max_health = (int)((float)(atoi(spawnVars[i][1])) * 0.7f);
+			g_entities[ENTITYNUM_WORLD].max_health = (int)((float)(atoi(level.spawnVars[i][1])) * 0.7f);
 		}
 	}
 
@@ -1604,9 +1596,9 @@ void G_SubBSPSpawnEntitiesFromString(const char *entityString, vec3_t posOffset,
 	entities = entityString;
 
 	// allow calls to G_Spawn*()
-	spawning = qtrue;
+	level.spawning = qtrue;
 	NPCsPrecached = qfalse;
-	numSpawnVars = 0;
+	level.numSpawnVars = 0;
 
 	// the worldspawn is not an actual entity, but it still
 	// has a "spawn" function to perform any global setup
@@ -1634,9 +1626,9 @@ void G_SpawnEntitiesFromString( const char *entityString ) {
 	entities = entityString;
 
 	// allow calls to G_Spawn*()
-	spawning = qtrue;
+	level.spawning = qtrue;
 	NPCsPrecached = qfalse;
-	numSpawnVars = 0;
+	level.numSpawnVars = 0;
 
 	// the worldspawn is not an actual entity, but it still
 	// has a "spawn" function to perform any global setup
@@ -1679,7 +1671,7 @@ void G_SpawnEntitiesFromString( const char *entityString ) {
 	//Automatically run routegen
 	//RG_RouteGen();
 
-	spawning = qfalse;			// any future calls to G_Spawn*() will be errors
+	level.spawning = qfalse;			// any future calls to G_Spawn*() will be errors
 
 	if ( g_delayedShutdown->integer && delayedShutDown )
 	{

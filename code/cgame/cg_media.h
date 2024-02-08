@@ -406,7 +406,6 @@ typedef struct {
 
 	// effects
 	cgEffects_t		effects;
-
 } cgs_t;
 
 extern	cgs_t			cgs;

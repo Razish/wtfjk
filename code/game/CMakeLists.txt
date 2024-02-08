@@ -82,6 +82,7 @@ set(SPGameGameFiles
 	"${SPDir}/game/g_misc_model.cpp"
 	"${SPDir}/game/g_missile.cpp"
 	"${SPDir}/game/g_mover.cpp"
+	"${SPDir}/game/g_mutators.cpp"
 	"${SPDir}/game/g_nav.cpp"
 	"${SPDir}/game/g_navigator.cpp"
 	"${SPDir}/game/g_navnew.cpp"
@@ -139,6 +140,7 @@ set(SPGameGameFiles
 	"${SPDir}/game/wp_tusken.cpp"
 	"${SPDir}/game/Q3_Interface.cpp"
 	"${SPDir}/game/bg_misc.cpp"
+	"${SPDir}/game/bg_mutators.cpp"
 	"${SPDir}/game/bg_pangles.cpp"
 	"${SPDir}/game/bg_panimate.cpp"
 	"${SPDir}/game/bg_pmove.cpp"
@@ -154,6 +156,7 @@ set(SPGameGameFiles
 	"${SPDir}/game/b_local.h"
 	"${SPDir}/game/b_public.h"
 	"${SPDir}/game/bg_local.h"
+	"${SPDir}/game/bg_mutators.h"
 	"${SPDir}/game/bg_public.h"
 	"${SPDir}/game/bset.h"
 	"${SPDir}/game/bstate.h"
@@ -165,6 +168,7 @@ set(SPGameGameFiles
 	"${SPDir}/game/g_functions.h"
 	"${SPDir}/game/g_items.h"
 	"${SPDir}/game/g_local.h"
+	"${SPDir}/game/g_mutators.h"
 	"${SPDir}/game/g_nav.h"
 	"${SPDir}/game/g_navigator.h"
 	"${SPDir}/game/g_public.h"
@@ -202,6 +206,7 @@ set(SPGameCGameFiles
 	"${SPDir}/cgame/cg_localents.cpp"
 	"${SPDir}/cgame/cg_main.cpp"
 	"${SPDir}/cgame/cg_marks.cpp"
+	"${SPDir}/cgame/cg_mutators.cpp"
 	"${SPDir}/cgame/cg_players.cpp"
 	"${SPDir}/cgame/cg_playerstate.cpp"
 	"${SPDir}/cgame/cg_predict.cpp"
@@ -235,6 +240,7 @@ set(SPGameCGameFiles
 	"${SPDir}/cgame/cg_headers.h"
 	"${SPDir}/cgame/cg_local.h"
 	"${SPDir}/cgame/cg_media.h"
+	"${SPDir}/cgame/cg_mutators.h"
 	"${SPDir}/cgame/cg_public.h"
 	"${SPDir}/cgame/common_headers.h"
 	"${SPDir}/cgame/FxPrimitives.h"
@@ -386,18 +392,18 @@ endif()
 if(WIN32)
 	install(TARGETS ${SPGame}
 		RUNTIME
-		DESTINATION "${JKAInstallDir}/OpenJK"
+		DESTINATION "${JKAInstallDir}/wtfjk"
 		COMPONENT ${JKASPClientComponent})
 else(WIN32)
 	if(MakeApplicationBundles AND BuildSPEngine)
 		install(TARGETS ${SPGame}
 			LIBRARY
-			DESTINATION "${JKAInstallDir}/${SPEngine}.app/Contents/MacOS/OpenJK"
+			DESTINATION "${JKAInstallDir}/${SPEngine}.app/Contents/MacOS/wtfjk"
 			COMPONENT ${JKASPClientComponent})
 	else()
 		install(TARGETS ${SPGame}
 			LIBRARY
-			DESTINATION "${JKAInstallDir}/OpenJK"
+			DESTINATION "${JKAInstallDir}/wtfjk"
 			COMPONENT ${JKASPClientComponent})
 	endif()
 endif()

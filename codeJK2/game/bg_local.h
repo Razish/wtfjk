@@ -21,7 +21,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
+#pragma once
+
 // bg_local.h -- local definitions for the bg (both games) files
+#include "../../code/qcommon/q_shared.h"
+#include "bg_public.h"
 
 #define	TIMER_LAND		130
 #define	TIMER_GESTURE	(34*66+50)

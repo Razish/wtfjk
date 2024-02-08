@@ -25,6 +25,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define __G_PUBLIC_H__
 // g_public.h -- game module information visible to server
 
+#include "../qcommon/q_shared.h"
+
 #define	GAME_API_VERSION	10
 
 // entity->svFlags

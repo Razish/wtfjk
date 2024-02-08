@@ -519,7 +519,7 @@ Ghoul2 Insert End
 
 #define MAX_G2_COLLISIONS 16
 // a trace is returned when a box is swept through the world
-typedef struct {
+typedef struct trace_s {
 	qboolean	allsolid;	// if true, plane is not valid
 	qboolean	startsolid;	// if true, the initial point was in a solid area
 	float		fraction;	// time completed, 1.0 = didn't hit anything

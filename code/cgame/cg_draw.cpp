@@ -24,11 +24,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // cg_draw.c -- draw all of the graphical elements during
 // active (after loading) gameplay
 
+#include "bg_mutators.h"
 #include "cg_headers.h"
 
 #include "cg_media.h"
 #include "../game/objectives.h"
 #include "../game/g_vehicles.h"
+#include "cg_mutators.h"
 
 extern vmCvar_t	cg_debugHealthBars;
 
@@ -2550,6 +2552,15 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 	float		f;
 	float		x, y;
 
+	// for drunk mode
+	const float waveAmplitude = 3.0f;
+	const float waveFrequency = 0.666f;
+	const float phaseOne = cg.time / 1000.0 * waveFrequency * M_PI * 2;
+	const float phaseTwo = (cg.time + 500) / 666.0 * waveFrequency * 0.666 * M_PI;
+	const float drunkOffsetOne = waveAmplitude * sin(phaseOne);
+	const float drunkOffsetTwo = waveAmplitude * cos(phaseTwo);
+	const float drunkOffset = drunkOffsetOne + drunkOffsetTwo;
+
 	if ( !cg_drawCrosshair.integer )
 	{
 		return;
@@ -2726,7 +2737,12 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		}
 	}
 
-	w = h = cg_crosshairSize.value;
+	float crosshairSize = cg_crosshairSize.value;
+	if (cg.mutators.state.activeMutator == MUTATOR_DRUNK) {
+		crosshairSize += drunkOffsetOne * 2;
+		crosshairSize -= drunkOffsetTwo * 2;
+	}
+	w = h = crosshairSize;
 
 	// pulse the size of the crosshair when picking up items
 	f = cg.time - cg.itemPickupBlendTime;
@@ -2752,6 +2768,13 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		y = cg_crosshairY.integer;
 	}
 
+	if (cg.mutators.state.activeMutator == MUTATOR_DRUNK) {
+		x += drunkOffsetOne;
+		x -= drunkOffsetTwo;
+		y += drunkOffsetOne;
+		y -= drunkOffsetTwo;
+	}
+
 	if ( cg.snap->ps.viewEntity > 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD )
 	{
 		if ( !Q_stricmp( "misc_panel_turret", g_entities[cg.snap->ps.viewEntity].classname ))
@@ -2765,7 +2788,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 	}
 	else
 	{
-		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+		int crosshairIndex = (cg.mutators.state.activeMutator == MUTATOR_DRUNK) ? (int)(cg_drawCrosshair.value + drunkOffset * 0.25f) % NUM_CROSSHAIRS
+																				: (int)(cg_drawCrosshair.value) % NUM_CROSSHAIRS;
+		hShader = cgs.media.crosshairShader[crosshairIndex];
 
 		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w),
 			y + cg.refdef.y + 0.5 * (480 - h),
@@ -4098,6 +4123,8 @@ static void CG_Draw2D( void )
 
 		cgi_R_Font_DrawString(x_pos, y_pos, text,  colorTable[CT_WHITE], cgs.media.qhFontMedium, -1, 0.8f);
 	}
+
+	CG_DrawMutatorsHUD();
 }
 
 /*
@@ -4280,6 +4307,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	if ( (cg.snap->ps.forcePowersActive&(1<<FP_SEE)) )
 	{
 		cg.refdef.rdflags |= RDF_ForceSightOn;
+	}
+
+	if ( cg.mutators.state.activeMutator == MUTATOR_FILMNOIR ) {
+		cg.refdef.rdflags |= RDF_FILMNOIR;
 	}
 
 	cg.refdef.rdflags |= RDF_DRAWSKYBOX;

@@ -26,6 +26,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "b_local.h"
 #include "anims.h"
+#include "bg_mutators.h"
+#include "bg_public.h"
 #include "g_functions.h"
 #include "say.h"
 #include "Q3_Interface.h"
@@ -2529,6 +2531,19 @@ void NPC_Think ( gentity_t *self)//, int msec )
 	if( self->m_iIcarusID != IIcarusInterface::ICARUS_INVALID && !stop_icarus )
 	{
 		IIcarusInterface::GetIcarus()->Update( self->m_iIcarusID );
+	}
+
+	if (level.mutators.state.activeMutator == MUTATOR_ROSHINVASION) {
+		if (!Q_irand(0, 33)) {
+			const int speechType = Q_irand(0, 3);
+			if (speechType == 0) {
+				G_SpeechEvent(NPC, Q_irand(EV_TAUNT1, EV_TAUNT3));
+			} else if (speechType == 1) {
+				G_SpeechEvent(NPC, Q_irand(EV_VICTORY1, EV_VICTORY3));
+			} else {
+				G_SpeechEvent(NPC, Q_irand(EV_GLOAT1, EV_GLOAT3));
+			}
+		}
 	}
 }
 

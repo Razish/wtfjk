@@ -627,7 +627,7 @@ NPC_CheckAlertEvents
 
 int G_CheckAlertEvents( gentity_t *self, qboolean checkSight, qboolean checkSound, float maxSeeDist, float maxHearDist, int ignoreAlert, qboolean mustHaveOwner, int minAlertLevel, qboolean onGroundOnly )
 {
-	if ( &g_entities[0] == NULL || g_entities[0].health <= 0 )
+	if ( !g_entities[0].inuse || g_entities[0].health <= 0 )
 	{
 		//player is dead
 		return -1;
@@ -937,7 +937,7 @@ qboolean G_ClearLOS( gentity_t *self, const vec3_t start, const vec3_t end )
 	{//can see through 3 panes of glass
 		if ( tr.entityNum < ENTITYNUM_WORLD )
 		{
-			if ( &g_entities[tr.entityNum] != NULL && (g_entities[tr.entityNum].svFlags&SVF_GLASS_BRUSH) )
+			if ( g_entities[tr.entityNum].inuse && (g_entities[tr.entityNum].svFlags&SVF_GLASS_BRUSH) )
 			{//can see through glass, trace again, ignoring me
 				gi.trace ( &tr, tr.endpos, NULL, NULL, end, tr.entityNum, MASK_OPAQUE, (EG2_Collision)0, 0 );
 				traceCount++;

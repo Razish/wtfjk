@@ -24,8 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_functions.h"
 #include "b_local.h"
 
-extern int	G_FindConfigstringIndex( const char *name, int start, int max, qboolean create );
-
 #define FX_ENT_RADIUS 32
 
 extern int	BMS_START;

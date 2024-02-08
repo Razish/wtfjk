@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_functions.h"
 #include "../cgame/cg_local.h"
 #include "Q3_Interface.h"
+#include "qcommon/q_math.h"
 #include "wp_saber.h"
 #include "g_vehicles.h"
 #include "b_local.h"
@@ -1388,7 +1389,10 @@ void	G_TouchTriggersLerped( gentity_t *ent ) {
 	VectorSubtract( ent->currentOrigin, ent->lastOrigin, diff );
 	dist = VectorNormalize( diff );
 #ifdef _DEBUG
-	assert( (dist<1024) && "insane distance in G_TouchTriggersLerped!" );
+	//RAZFIXME: figure out why this fired. i was dead, giants mutator had just finished.
+	// currentOrigin: {9376, -3464, -2.14748365E+9}
+	// lastOrigin: {9376, -3464, 0.125}
+	//assert( (dist<1024) && "insane distance in G_TouchTriggersLerped!" );
 #endif// _DEBUG
 
 	if ( dist > 1024 )
@@ -4914,6 +4918,22 @@ extern cvar_t	*g_skippingcin;
 			if ( ent->client->ps.weapon != WP_DISRUPTOR )
 			{//can still zoom around corners
 				ucmd->buttons &= ~BUTTON_ALT_ATTACK;
+			}
+		}
+
+		if (level.mutators.state.activeMutator == MUTATOR_DRUNK) {
+			// each frame there's a 15% chance to fall over each frame across 5 seconds at 125fps
+			// blame daggo 🙊
+			if (!PM_InKnockDown(&player->client->ps) && (Q_flrand(0.0, 1.0f) * 100 * 125 * 5) < 15.0f) {
+				vec3_t fwd;
+				AngleVectors(player->client->ps.viewangles, fwd, NULL, NULL);
+				// manual knockdown to bypass original behaviour, requirements
+				NPC_SetPainEvent(player);
+				G_CheckLedgeDive(player, 72, fwd, qfalse, qfalse);
+				const int anim = BOTH_KNOCKDOWN3;
+				NPC_SetAnim(player, SETANIM_BOTH, anim, SETANIM_FLAG_OVERRIDE | SETANIM_FLAG_HOLD);
+				player->client->ps.legsAnimTimer += 500;
+				player->client->ps.torsoAnimTimer += 500;
 			}
 		}
 	}

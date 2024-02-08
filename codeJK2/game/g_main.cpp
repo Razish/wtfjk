@@ -613,7 +613,7 @@ qboolean g_qbLoadTransition = qfalse;
 #ifndef FINAL_BUILD
 extern int fatalErrors;
 #endif
-void InitGame(  const char *mapname, const char *spawntarget, int checkSum, const char *entities, int levelTime, int randomSeed, int globalTime, SavedGameJustLoaded_e eSavedGameJustLoaded, qboolean qbLoadTransition )
+void InitGame(  const char *mapname, const char *spawntarget, int checkSum, const char *entities, int levelTime, int globalTime, int randomSeed, SavedGameJustLoaded_e eSavedGameJustLoaded, qboolean qbLoadTransition )
 {
 	giMapChecksum = checkSum;
 	g_eSavedGameJustLoaded = eSavedGameJustLoaded;

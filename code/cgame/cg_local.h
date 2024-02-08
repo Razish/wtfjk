@@ -26,6 +26,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "../qcommon/q_shared.h"
 
+#include "../game/bg_mutators.h"
+
 // define GAME_INCLUDE so that g_public.h does not define the
 // short, server-visible gclient_t and gentity_t structures,
 // because we define the full size ones in this file
@@ -512,6 +514,9 @@ Ghoul2 Insert End
 */
 	overrides_t	overrides;	//for overriding certain third-person camera properties
 
+	struct {
+		mutatorState_t state;
+	} mutators;
 } cg_t;
 
 

@@ -37,6 +37,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../qcommon/q_shared.h"
 #include "g_shared.h"
 #include "bg_local.h"
+#include "bg_mutators.h"
 #include "g_local.h"
 #include "g_functions.h"
 #include "anims.h"
@@ -8203,7 +8204,7 @@ static void PM_Footsteps( void )
 				}
 				if ( pm->ps->saberEntityNum < ENTITYNUM_NONE && pm->ps->saberEntityNum > 0 )//player is 0
 				{//
-					if ( &g_entities[pm->ps->saberEntityNum] != NULL && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
+					if ( g_entities[pm->ps->saberEntityNum].inuse && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
 					{//fell to the ground and we're not trying to pull it back
 						saberInAir = qfalse;
 					}
@@ -12149,7 +12150,7 @@ void PM_WeaponLightsaber(void)
 		{//guiding saber
 			if ( pm->ps->saberEntityNum < ENTITYNUM_NONE && pm->ps->saberEntityNum > 0 )//player is 0
 			{//
-				if ( &g_entities[pm->ps->saberEntityNum] != NULL && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
+				if ( g_entities[pm->ps->saberEntityNum].inuse && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
 				{//fell to the ground and we're not trying to pull it back
 					saberInAir = qfalse;
 				}
@@ -12333,7 +12334,7 @@ void PM_WeaponLightsaber(void)
 				}
 				if ( pm->ps->saberEntityNum < ENTITYNUM_NONE && pm->ps->saberEntityNum > 0 )//player is 0
 				{//
-					if ( &g_entities[pm->ps->saberEntityNum] != NULL && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
+					if ( g_entities[pm->ps->saberEntityNum].inuse && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
 					{//fell to the ground and we're not trying to pull it back
 						saberInAir = qfalse;
 					}
@@ -12560,7 +12561,7 @@ void PM_WeaponLightsaber(void)
 			}
 			if ( pm->ps->saberEntityNum < ENTITYNUM_NONE && pm->ps->saberEntityNum > 0 )//player is 0
 			{//
-				if ( &g_entities[pm->ps->saberEntityNum] != NULL && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
+				if ( g_entities[pm->ps->saberEntityNum].inuse && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
 				{//fell to the ground and we're not trying to pull it back
 					saberInAir = qfalse;
 				}
@@ -14012,7 +14013,7 @@ static void PM_Weapon( void )
 	if(!PM_ControlledByPlayer())
 	{
 		if(pm->gent && pm->gent->NPC != NULL )
-		{//NPCs have their own refire logic
+		{//NPCs have their own refire logic (ShootThink?)
 			return;
 		}
 	}
@@ -14021,7 +14022,7 @@ static void PM_Weapon( void )
 	{
 		if ( g_timescale->value < 1.0f )
 		{
-			if ( !MatrixMode )
+			if ( !MatrixMode && BG_GetCurrentMutator() != MUTATOR_DRUNK )
 			{//Special test for Matrix Mode (tm)
 				if ( pm->ps->clientNum == 0 && !player_locked && (pm->ps->forcePowersActive&(1<<FP_SPEED)||pm->ps->forcePowersActive&(1<<FP_RAGE)) )
 				{//player always fires at normal speed
@@ -14769,6 +14770,39 @@ void Pmove( pmove_t *pmove )
 	VectorCopy (pm->ps->velocity, pml.previous_velocity);
 
 	pml.frametime = pml.msec * 0.001;
+
+	if (BG_GetCurrentMutator() == MUTATOR_DRUNK && pm->ps->clientNum == 0) {
+		// randomly flip some of the desired input directions every ~5s 🤪
+		static int lastFlippedTime = 0;
+		if (lastFlippedTime < pm->cmd.serverTime - 2000) {
+			const bool flips[3] = {!Q_irand(0, 4), !Q_irand(0, 4), !Q_irand(0, 4)};
+			if (flips[0]) {
+				pm->cmd.forwardmove *= -1;
+			}
+			if (flips[1]) {
+				pm->cmd.rightmove *= -1;
+			}
+			if (flips[2]) {
+				pm->cmd.upmove *= -1;
+			}
+
+			lastFlippedTime = pm->cmd.serverTime;
+		}
+
+		// small chance to randomly rebind the input directions 🤷
+		static int lastReboundTime = 0;
+		static int cycleIndex = 0;
+		if (lastReboundTime < pm->cmd.serverTime - 500) {
+			if (!Q_irand(0, 50)) {
+				cycleIndex += Q_irand(0, 3);
+			}
+			lastReboundTime = pm->cmd.serverTime;
+		}
+		const signed char moves[3] = {pm->cmd.forwardmove, pm->cmd.rightmove, pm->cmd.upmove};
+		pm->cmd.forwardmove = moves[(cycleIndex + 0) % 3];
+		pm->cmd.rightmove = moves[(cycleIndex + 1) % 3];
+		pm->cmd.upmove = moves[(cycleIndex + 2) % 3];
+	}
 
 	if ( pm->ps->clientNum >= MAX_CLIENTS &&
 		pm->gent &&

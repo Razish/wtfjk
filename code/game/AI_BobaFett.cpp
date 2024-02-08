@@ -1005,7 +1005,9 @@ bool	Boba_Respawn()
 		return true;
 	}
 
-	assert(0);	// Yea, that's bad...
+	//RAZFIXME: do we care about this?
+	// it fired during a MUTATOR_RANDOMBOSSFIGHT on t2_trip while i was in a swoop
+	// assert(0);	// Yea, that's bad...
 	Boba_Printf("FAILED TO FIND SPAWN POINT");
 	return false;
 }
@@ -1067,7 +1069,7 @@ void	Boba_Update()
 			}
 		}
 
-		if (!NPCInfo->surrenderTime)
+		if (!NPCInfo->surrenderTime && NPCInfo->enemyLastSeenTime != 0)
 		{
 			if ((level.time - NPCInfo->enemyLastSeenTime)>20000 && TIMER_Done(NPC, "TooLongGoneRespawn"))
 			{

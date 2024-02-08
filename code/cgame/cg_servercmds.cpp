@@ -23,10 +23,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // cg_servercmds.c -- text commands sent by the server
 
+#include "bg_mutators.h"
 #include "cg_headers.h"
 
 #include "cg_media.h"
 #include "FxScheduler.h"
+#include "qcommon/q_shared.h"
 
 
 /*
@@ -98,6 +100,28 @@ void CG_ParseServerinfo( void ) {
 		strcpy( cgs.stripLevelName[1], "BESPIN_UNDERCITY" );
 	}
 */
+
+	// format is: mutatorIndex:startTime:nextTime
+	int activeMutator;
+	int timeCurrent;
+	int timeNext;
+	if (sscanf(Info_ValueForKey(info, "mutator"), "%i:%i:%i", &activeMutator, &timeCurrent, &timeNext) != 3) {
+		cg.mutators.state.activeMutator = MUTATOR_NONE;
+		cg.mutators.state.time.current = 0;
+		cg.mutators.state.time.next = 0;
+	}
+	assert(activeMutator >= 0 && activeMutator < NUM_MUTATORS);
+	assert(timeNext >= timeCurrent);
+
+	cg.mutators.state.activeMutator = (mutator_e)activeMutator;
+	if (timeNext >= timeCurrent) {
+		cg.mutators.state.time.current = timeCurrent;
+		cg.mutators.state.time.next = timeNext;
+	} else {
+		// this happened when quick-loading 🤷
+		cg.mutators.state.time.current = 0;
+		cg.mutators.state.time.next = 0;
+	}
 }
 
 

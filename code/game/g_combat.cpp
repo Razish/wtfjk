@@ -27,6 +27,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "b_local.h"
 #include "g_functions.h"
 #include "anims.h"
+#include "g_shared.h"
 #include "objectives.h"
 #include "../cgame/cg_local.h"
 #include "wp_saber.h"
@@ -3591,12 +3592,39 @@ int G_CheckLedgeDive( gentity_t *self, float checkDist, const vec3_t checkVel, q
 	return cliff_fall;
 }
 
+// sorry, doesn't support vehicles etc.
+static gentity_t *SpawnSplitNPC(gentity_t *host, vec3_t spawnPos) {
+	gentity_t *NPCspawner = G_Spawn();
+
+	if (!NPCspawner) {
+		gi.Printf(S_COLOR_RED "NPC_Spawn Error: Out of entities!\n");
+		return nullptr;
+	}
+
+	NPCspawner->e_ThinkFunc = thinkF_G_FreeEntity;
+	NPCspawner->nextthink = level.time + FRAMETIME;
+
+	G_SetOrigin(NPCspawner, spawnPos);
+	VectorCopy(NPCspawner->currentOrigin, NPCspawner->s.origin);
+	NPCspawner->s.angles[1] = host->s.angles[1];
+	gi.linkentity(NPCspawner);
+
+	char *npc_type = host->NPC_type;
+	NPCspawner->NPC_type = Q_strlwr(G_NewString(npc_type));
+	NPCspawner->NPC_targetname = G_NewString(""); // umm
+	NPCspawner->count = 1;
+	NPCspawner->delay = 0;
+	NPCspawner->wait = FRAMETIME;
+
+	NPC_PrecacheByClassName(NPCspawner->NPC_type);
+	return NPC_Spawn(NPCspawner, NPCspawner, NPCspawner);
+}
+
 /*
 ==================
 player_die
 ==================
 */
-void NPC_SetAnim(gentity_t	*ent,int setAnimParts,int anim,int setAnimFlags, int iBlend);
 extern void AI_DeleteSelfFromGroup( gentity_t *self );
 extern void AI_GroupMemberKilled( gentity_t *self );
 extern qboolean FlyingCreature( gentity_t *ent );
@@ -3616,6 +3644,30 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	qboolean	specialAnim = qfalse;
 	qboolean	holdingSaber = qfalse;
 	int			cliff_fall = 0;
+
+	if (level.mutators.state.activeMutator == MUTATOR_SPLIT) {
+		// FIXME: is there a better way to assert this? rosh_penin on yavin1b is ET_PLAYER 🤦
+		// FIXME: assert we're a splittable NPC (not vehicle...)
+		if (!Q_stricmp(self->classname, "NPC")) {
+			// pick a random direction and shove them :D
+			for (int i = 0; i < 2; i++) {
+				vec3_t targetDir = {Q_flrand(-1.0f, 1.0f), Q_flrand(-1.0f, 1.0f), Q_flrand(0.25f, 1.0f)};
+				vec3_t targetPos;
+				VectorMA(self->currentOrigin, 32.0f, targetDir, targetPos);
+				trace_t tr;
+				gi.trace(&tr, self->currentOrigin, self->mins, self->maxs, targetPos, self->s.number, self->clipmask, (EG2_Collision)0, 0);
+				gentity_t *split = SpawnSplitNPC(self, tr.endpos);
+
+				// FIXME: if tr.fraction < 1.0, iteratively trace away from tr.normal?
+
+				if (split) {
+					VectorCopy(self->s.modelScale, split->s.modelScale);
+					VectorScale(split->s.modelScale, 0.75f, split->s.modelScale);
+					G_Throw(split, targetDir, 16.0f);
+				}
+			}
+		}
+	}
 
 	//FIXME: somehow people are sometimes not completely dying???
 	if ( self->client->ps.pm_type == PM_DEAD && (meansOfDeath != MOD_SNIPER || (self->flags & FL_DISINTEGRATED)) )

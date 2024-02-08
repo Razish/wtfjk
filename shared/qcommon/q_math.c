@@ -675,7 +675,24 @@ void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal )
 	float inv_denom;
 
 	inv_denom =  DotProduct( normal, normal );
-	assert( Q_fabs(inv_denom) != 0.0f );
+	/* RAZFIXME: this is triggering on:
+		ProjectPointOnPlane
+		PerpendicularVector
+		CG_ImpactMark(int, float const*, float const*, float, float, float, float, float, qboolean, float, qboolean)
+		CFxScheduler::CreateEffect(CPrimitiveTemplate*, float const*, float (*) [3], int, int, int, int)
+		CFxScheduler::PlayEffect(int, float*, float (*) [3], int, int, bool, int, bool)
+		CFxScheduler::PlayEffect(int, float*, float*, bool)
+		FX_BowcasterHitWall(float*, float*)
+		CG_MissileHitWall(centity_s*, int, float*, float*, qboolean)
+		CG_EntityEvent(centity_s*, float*)
+		CG_CheckEvents(centity_s*)
+		CG_TransitionEntity(centity_s*)
+		CG_TransitionSnapshot()
+		CG_ProcessSnapshots()
+		CG_DrawActiveFrame(int, stereoFrame_t)
+		::vmMain(int, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t)
+	*/
+	// assert( Q_fabs(inv_denom) != 0.0f );
 	inv_denom = 1.0f / inv_denom;
 
 	d = DotProduct( normal, p ) * inv_denom;

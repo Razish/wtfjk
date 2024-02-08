@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
+#include "bg_mutators.h"
 #include "common_headers.h"
 
 
@@ -4724,6 +4725,11 @@ void PM_SetAnimFinal(int *torsoAnim,int *legsAnim,
 	int		animStart	  = (curAnim.firstFrame);
 	int		animEnd		  = (curAnim.firstFrame)+(animations[anim].numFrames);
 
+	if (BG_GetCurrentMutator() == MUTATOR_DRUNK && gent->s.number != 0) {
+		// speed everyone else up if we're drunk :)))
+		animSpeed *= 5.0f;
+	}
+
 	// If We Have A Blend Timer, Add The Blend Flag
 	//----------------------------------------------
 	if (blendTime > 0)
@@ -5421,7 +5427,7 @@ void PM_TorsoAnimLightsaber()
 				}
 				if ( pm->ps->saberEntityNum < ENTITYNUM_NONE && pm->ps->saberEntityNum > 0 )//player is 0
 				{//
-					if ( &g_entities[pm->ps->saberEntityNum] != NULL && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
+					if ( g_entities[pm->ps->saberEntityNum].inuse && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
 					{//fell to the ground and we're not trying to pull it back
 						saberInAir = qfalse;
 					}
@@ -5655,7 +5661,7 @@ void PM_TorsoAnimation( void )
 			{
 				if ( pm->ps->saberEntityNum < ENTITYNUM_NONE && pm->ps->saberEntityNum > 0 )//player is 0
 					{//
-					if ( &g_entities[pm->ps->saberEntityNum] != NULL && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
+					if ( g_entities[pm->ps->saberEntityNum].inuse && g_entities[pm->ps->saberEntityNum].s.pos.trType == TR_STATIONARY )
 					{//fell to the ground and we're not trying to pull it back
 						saberInAir = qfalse;
 					}

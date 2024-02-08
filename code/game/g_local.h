@@ -33,11 +33,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_shared.h"
 #include "anims.h"
 #include "dmstates.h"
+#include "bg_mutators.h"
 
 //==================================================================
 
 // the "gameversion" client command will print this plus compile date
-#define	GAMEVERSION	"OpenJK"
+#define	GAMEVERSION	"WtfJk"
 
 #define BODY_QUEUE_SIZE		8
 
@@ -300,6 +301,23 @@ public:
 	char		*mTargetAdjust;
 	qboolean	hasBspInstances;
 
+	// these vars I moved here out of the level_locals_t struct simply because it's pointless to try saving them,
+	//	and the level_locals_t struct is included in the save process... -slc
+	//
+	qboolean	spawning;				// the G_Spawn*() functions are valid  (only turned on during one function)
+	int			numSpawnVars;
+	char		*spawnVars[MAX_SPAWN_VARS][2];	// key / value pairs
+	int			numSpawnVarChars;
+	char		spawnVarChars[MAX_SPAWN_VARS_CHARS];
+
+	struct {
+		mutatorState_t	state;
+		bool			spawningEnts;
+
+		struct {
+			float savedTimescale;
+		} drunk;
+	} mutators;
 
 	void sg_export(
 		ojk::SavedGameHelper& saved_game) const
@@ -349,6 +367,7 @@ public:
 extern	level_locals_t	level;
 extern	game_export_t	globals;
 
+extern	cvar_t	*g_timescale;
 extern	cvar_t	*g_gravity;
 extern	cvar_t	*g_speed;
 extern	cvar_t	*g_cheats;
@@ -715,5 +734,20 @@ void		TIMER_Remove( gentity_t *ent, const char *identifier );
 
 float NPC_GetHFOVPercentage( vec3_t spot, vec3_t from, vec3_t facing, float hFOV );
 float NPC_GetVFOVPercentage( vec3_t spot, vec3_t from, vec3_t facing, float vFOV );
+
+char *G_AddSpawnVarToken(const char *string);
+int G_CheckLedgeDive(gentity_t *self, float checkDist, const vec3_t checkVel, qboolean tryOpposite, qboolean tryPerp);
+int G_FindConfigstringIndex(const char *name, int start, int max, qboolean create);
+qboolean G_CallSpawn(gentity_t *ent);
+qboolean NPC_ParseParms(const char *NPCName, gentity_t *NPC);
+void CG_RegisterNPCCustomSounds(clientInfo_t *ci);
+void G_RemovePlayerModel(gentity_t *ent);
+void G_SetG2PlayerModel(gentity_t *const ent, const char *modelName, const char *customSkin, const char *surfOff, const char *surfOn);
+void G_SpawnGEntityFromSpawnVars(void);
+void G_SpeechEvent(gentity_t *self, int event);
+void NPC_DefaultScriptFlags(gentity_t *ent);
+void NPC_PrecacheByClassName(const char *type);
+void NPC_SetAnim(gentity_t *ent, int setAnimParts, int anim, int setAnimFlags, int iBlend);
+void Q3_SetParm(int entID, int parmNum, const char *parmValue);
 
 #endif//#ifndef __G_LOCAL_H__

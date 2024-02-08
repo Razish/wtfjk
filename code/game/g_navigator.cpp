@@ -1272,7 +1272,7 @@ bool			NAV::TestEdge( TNodeHandle NodeA, TNodeHandle NodeB, qboolean IsDebugEdge
 		!mMoveTrace.startsolid &&
 		EntHit!=ENTITYNUM_WORLD &&
 		EntHit!=ENTITYNUM_NONE &&
-		(&g_entities[EntHit])!=0)
+		(g_entities[EntHit]).inuse)
 	{
 		gentity_t*	ent		= &g_entities[EntHit];
 

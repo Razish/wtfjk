@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "b_local.h"
 #include "bg_local.h"
 #include "g_functions.h"
+#include "ghoul2_shared.h"
 #include "wp_saber.h"
 #include "g_vehicles.h"
 #include "../qcommon/tri_coll_test.h"
@@ -1339,7 +1340,7 @@ qboolean WP_SaberApplyDamage( gentity_t *ent, float baseDamage, int baseDFlags,
 	for ( int i = 0; i < numVictims; i++ )
 	{
 		dFlags = baseDFlags|DAMAGE_DEATH_KNOCKBACK|DAMAGE_NO_HIT_LOC;
-		if ( victimEntityNum[i] != ENTITYNUM_NONE && &g_entities[victimEntityNum[i]] != NULL )
+		if ( victimEntityNum[i] != ENTITYNUM_NONE && g_entities[victimEntityNum[i]].inuse )
 		{	// Don't bother with this damage if the fraction is higher than the saber's fraction
 			if ( dmgFraction[i] < saberHitFraction || brokenParry )
 			{
@@ -2519,7 +2520,7 @@ qboolean WP_SaberDamageForTrace( int ignore, vec3_t start, vec3_t end, float dmg
 	}
 	else
 	{
-		gi.trace( &tr, start, NULL, NULL, end2, ignore, mask, G2_NOCOLLIDE, 10 );
+		gi.trace( &tr, start, NULL, NULL, end2, ignore, mask, G2_COLLIDE, 10 );
 	}
 
 
@@ -2548,7 +2549,7 @@ qboolean WP_SaberDamageForTrace( int ignore, vec3_t start, vec3_t end, float dmg
 		return qtrue;
 	}
 
-	if ( &g_entities[tr.entityNum] )
+	if ( g_entities[tr.entityNum].inuse )
 	{
 		gentity_t *hitEnt = &g_entities[tr.entityNum];
 		gentity_t *owner = g_entities[tr.entityNum].owner;
@@ -2635,7 +2636,7 @@ qboolean WP_SaberDamageForTrace( int ignore, vec3_t start, vec3_t end, float dmg
 				{
  					return qtrue;
 				}
-				if ( tr.entityNum == ENTITYNUM_NONE || &g_entities[tr.entityNum] == NULL )
+				if ( tr.entityNum == ENTITYNUM_NONE || !g_entities[tr.entityNum].inuse )
 				{//didn't hit the owner
 					/*
 					if ( attacker
@@ -4824,7 +4825,7 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 			&& !G_InCinematicSaberAnim( ent ) )
 		{//only do once - for first blade
 			trace_t trace;
-			gi.trace( &trace, ent->currentOrigin, vec3_origin, vec3_origin, mp1, ent->s.number, (MASK_SHOT&~(CONTENTS_CORPSE|CONTENTS_ITEM)), (EG2_Collision)0, 0 );
+			gi.trace( &trace, ent->currentOrigin, vec3_origin, vec3_origin, mp1, ent->s.number, (MASK_SHOT&~(CONTENTS_CORPSE|CONTENTS_ITEM)), (EG2_Collision)G2_COLLIDE, 0 );
 			if ( trace.entityNum < ENTITYNUM_WORLD && (trace.entityNum > 0||ent->client->NPC_class == CLASS_DESANN) )//NPCs don't push player away, unless it's Desann
 			{//a valid ent
 				gentity_t *traceEnt = &g_entities[trace.entityNum];
@@ -6425,7 +6426,7 @@ void WP_RunSaber( gentity_t *self, gentity_t *saber )
 		clipmask &= ~CONTENTS_LIGHTSABER;
 	}
 	gi.trace( &tr, saber->currentOrigin, saber->mins, saber->maxs, origin,
-		saber->owner ? saber->owner->s.number : ENTITYNUM_NONE, clipmask, (EG2_Collision)0, 0 );
+		saber->owner ? saber->owner->s.number : ENTITYNUM_NONE, clipmask, (EG2_Collision)G2_COLLIDE, 0 );
 
 	VectorCopy( tr.endpos, saber->currentOrigin );
 
@@ -14359,7 +14360,7 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 	{//don't regen force power while throwing saber
 		if ( self->client->ps.saberEntityNum < ENTITYNUM_NONE && self->client->ps.saberEntityNum > 0 )//player is 0
 		{//
-			if ( &g_entities[self->client->ps.saberEntityNum] != NULL && g_entities[self->client->ps.saberEntityNum].s.pos.trType == TR_LINEAR )
+			if ( g_entities[self->client->ps.saberEntityNum].inuse && g_entities[self->client->ps.saberEntityNum].s.pos.trType == TR_LINEAR )
 			{//fell to the ground and we're trying to pull it back
 				usingForce = qtrue;
 			}

@@ -25,6 +25,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // for a 3D rendering
 
 // this line must stay at top so the whole PCH thing works...
+#include "bg_mutators.h"
 #include "cg_headers.h"
 
 #include "cg_media.h"
@@ -877,6 +878,11 @@ static void CG_OffsetThirdPersonView( void )
 		VectorCopy( camerafwd, diff );
 	}
 	vectoangles(diff, cg.refdefViewAngles);
+	if (cg.mutators.state.activeMutator == MUTATOR_SPINNYCAM) {
+		cg.refdefViewAngles[ROLL] = fmodf((cg.time / 75.0f), 360.0f);
+	} else {
+		cg.refdefViewAngles[ROLL] = 0;
+	}
 
 	// Temp: just move the camera to the side a bit
 	extern vmCvar_t cg_thirdPersonHorzOffset;
@@ -1300,6 +1306,16 @@ qboolean CG_CalcFOVFromX( float fov_x )
 	else
 	{
 		inwater = qfalse;
+	}
+
+	if (cg.mutators.state.activeMutator == MUTATOR_DRUNK) {
+		const float waveAmplitude = 3.0f;
+		const float waveFrequency = 0.666f;
+		phase = cg.time / 1000.0 * waveFrequency * M_PI * 2;
+		v = waveAmplitude * sin(phase);
+		fov_x += v;
+		fov_y -= v;
+		inwater = qtrue;
 	}
 
 	// see if we are drugged by an interrogator.  We muck with the FOV here, a bit later, after viewangles are calc'ed, I muck with those too.

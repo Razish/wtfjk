@@ -1493,7 +1493,7 @@ qboolean NPC_CheckLookTarget( gentity_t *self )
 	{
 		if ( self->client->renderInfo.lookTarget >= 0 && self->client->renderInfo.lookTarget < ENTITYNUM_WORLD )
 		{//within valid range
-			if ( (&g_entities[self->client->renderInfo.lookTarget] == NULL) || !g_entities[self->client->renderInfo.lookTarget].inuse )
+			if ( !g_entities[self->client->renderInfo.lookTarget].inuse )
 			{//lookTarget not inuse or not valid anymore
 				NPC_ClearLookTarget( self );
 			}

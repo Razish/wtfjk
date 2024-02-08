@@ -1721,7 +1721,7 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent, qboolean fullSpawnNow )
 	{
 		for ( int parmNum = 0; parmNum < MAX_PARMS; parmNum++ )
 		{
-			if ( ent->parms->parm[parmNum] && ent->parms->parm[parmNum][0] )
+			if ( ent->parms->parm[parmNum][0] )
 			{
 				Q3_SetParm( newent->s.number, parmNum, ent->parms->parm[parmNum] );
 			}
@@ -1760,6 +1760,12 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent, qboolean fullSpawnNow )
 	}
 	NPC_DefaultScriptFlags( newent );
 
+	if (level.mutators.state.activeMutator == MUTATOR_GIANTS) {
+		newent->mutators.giants.scaleAmount = flrand(4.0f, 12.0f);
+		VectorCopy(newent->s.modelScale, newent->mutators.giants.oldModelScale);
+		VectorScale(newent->s.modelScale, newent->mutators.giants.scaleAmount, newent->s.modelScale);
+	}
+
 	gi.linkentity (newent);
 
 	if(ent->e_UseFunc == useF_NULL)
@@ -1789,9 +1795,9 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent, qboolean fullSpawnNow )
 	return newent;
 }
 
-void NPC_Spawn_Go( gentity_t *ent )
+gentity_t *NPC_Spawn_Go( gentity_t *ent )
 {
-	NPC_Spawn_Do( ent, qfalse );
+	return NPC_Spawn_Do( ent, qfalse );
 }
 
 /*
@@ -1838,31 +1844,31 @@ NPC_ShySpawn
 #define SHY_SPAWN_DISTANCE		128
 #define SHY_SPAWN_DISTANCE_SQR	( SHY_SPAWN_DISTANCE * SHY_SPAWN_DISTANCE )
 
-void NPC_ShySpawn( gentity_t *ent )
+gentity_t *NPC_ShySpawn( gentity_t *ent )
 {
 	ent->nextthink = level.time + SHY_THINK_TIME;
 	ent->e_ThinkFunc = thinkF_NPC_ShySpawn;
 
 	if ( DistanceSquared( g_entities[0].currentOrigin, ent->currentOrigin ) <= SHY_SPAWN_DISTANCE_SQR )
-		return;
+		return nullptr;
 
 	if ( (InFOV( ent, &g_entities[0], 80, 64 )) ) // FIXME: hardcoded fov
 		if ( (NPC_ClearLOS( &g_entities[0], ent->currentOrigin )) )
-			return;
+			return nullptr;
 
 	// 4/18/03 kef -- don't let guys spawn into other guys
 	if (ent->spawnflags & 4096)
 	{
 		if (!NPC_SafeSpawn(ent, 64))
 		{
-			return;
+			return nullptr;
 		}
 	}
 
 	ent->e_ThinkFunc = thinkF_NULL;
 	ent->nextthink = 0;
 
-	NPC_Spawn_Go( ent );
+	return NPC_Spawn_Go( ent );
 }
 
 /*
@@ -1871,7 +1877,7 @@ NPC_Spawn
 -------------------------
 */
 
-void NPC_Spawn ( gentity_t *ent, gentity_t *other, gentity_t *activator )
+gentity_t *NPC_Spawn ( gentity_t *ent, gentity_t *other, gentity_t *activator )
 {
 	//delay before spawning NPC
 	if (other->spawnflags&32)
@@ -1897,10 +1903,12 @@ void NPC_Spawn ( gentity_t *ent, gentity_t *other, gentity_t *activator )
 	else
 	{
 		if ( ent->spawnflags & 2048 )  // SHY
-			NPC_ShySpawn( ent );
+			return NPC_ShySpawn( ent );
 		else
-			NPC_Spawn_Go( ent );
+			return NPC_Spawn_Go( ent );
 	}
+
+	return nullptr;
 }
 
 /*QUAKED NPC_spawner (1 0 0) (-16 -16 -24) (16 16 40) x x x x DROPTOFLOOR CINEMATIC NOTSOLID STARTINSOLID SHY SAFE
@@ -1970,7 +1978,6 @@ first and so no scripts should be names with these names:
 
 delay - after spawned or triggered, how many seconds to wait to spawn the NPC
 */
-extern qboolean	spawning;				// the G_Spawn*() functions are valid  (only turned on during one function)
 extern void	NPC_PrecacheByClassName(const char*);
 
 void SP_NPC_spawner( gentity_t *self)
@@ -2043,7 +2050,7 @@ void SP_NPC_spawner( gentity_t *self)
 	else
 	{
 		//NOTE: auto-spawners never check for shy spawning
-		if ( spawning )
+		if ( level.spawning )
 		{//in entity spawn stage - map starting up
 			self->e_ThinkFunc = thinkF_NPC_Spawn_Go;
 			self->nextthink = level.time + START_TIME_REMOVE_ENTS + 50;

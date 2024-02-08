@@ -33,25 +33,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 #=============================================================================
 option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
 
-option(BuildMPEngine "Whether to create projects for the MP client (openjk.exe)" ON)
-option(BuildMPRdVanilla "Whether to create projects for the MP default renderer (rd-vanilla_x86.dll)" ON)
-option(BuildMPDed "Whether to create projects for the MP dedicated server (openjkded.exe)" ON)
-option(BuildMPGame "Whether to create projects for the MP server-side gamecode (jampgamex86.dll)" ON)
-option(BuildMPCGame "Whether to create projects for the MP clientside gamecode (cgamex86.dll)" ON)
-option(BuildMPUI "Whether to create projects for the MP UI code (uix86.dll)" ON)
-option(BuildMPRend2 "Whether to create projects for the EXPERIMENTAL MP rend2 renderer (rd-rend2_x86.dll)" ON)
-option(BuildSPEngine "Whether to create projects for the SP engine (openjk_sp.exe)" ON)
 option(BuildSPGame "Whether to create projects for the SP gamecode (jagamex86.dll)" ON)
-option(BuildSPRdVanilla "Whether to create projects for the SP default renderer (rdsp-vanilla_x86.dll)" ON)
+# MARKER: add BuildSPRdBadCandy
 
-option(BuildJK2SPEngine "Whether to create projects for the jk2 SP engine (openjo_sp.exe)" OFF)
 option(BuildJK2SPGame "Whether to create projects for the jk2 sp gamecode mod (jk2gamex86.dll)" OFF)
-option(BuildJK2SPRdVanilla "Whether to create projects for the jk2 sp renderer (rdjosp-vanilla_x86.dll)" OFF)
-
-option(BuildTests "Whether to build automatic unit tests (requires Boost)" OFF)
-
-include(CMakeDependentOption)
-cmake_dependent_option(BuildSymbolServer "Build WIP Windows Symbol Server (experimental and unused)" OFF "NOT WIN32 OR NOT MSVC" OFF)
+# MARKER: add BuildJK2SPRdBadCandy
 
 # Configure the use of bundled libraries.  By default, we assume the user is on
 # a platform that does not require any bundling.
@@ -94,6 +80,14 @@ endif()
 #
 #=============================================================================
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake/Modules")
+
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+	add_custom_target(
+		copy-compile-commands ALL
+		${CMAKE_COMMAND} -E copy_if_different
+		${CMAKE_BINARY_DIR}/compile_commands.json
+		${CMAKE_CURRENT_LIST_DIR})
+endif()
 
 #=============================================================================
 #
@@ -149,22 +143,11 @@ endif()
 # Binary names
 #
 #=============================================================================
-set(SPEngine "openjk_sp.${Architecture}")
 set(SPGame "jagame${Architecture}")
-set(SPRDVanillaRenderer "rdsp-vanilla_${Architecture}")
-set(MPEngine "openjk.${Architecture}")
-set(MPVanillaRenderer "rd-vanilla_${Architecture}")
-set(MPDed "openjkded.${Architecture}")
-set(MPGame "jampgame${Architecture}")
-set(MPCGame "cgame${Architecture}")
-set(MPUI "ui${Architecture}")
-set(MPRend2 "rd-rend2_${Architecture}")
-set(JK2SPEngine "openjo_sp.${Architecture}")
+# MARKER: add SPRDBadCandyRenderer
 set(JK2SPGame "jospgame${Architecture}")
-set(JK2SPVanillaRenderer "rdjosp-vanilla_${Architecture}")
-set(AssetsPk3 "openjk-${Architecture}.pk3")
+# MARKER: add JK2SPRDBadCandyRenderer
 # Library names
-set(MPBotLib "botlib")
 set(SharedLib "shared")
 
 #=============================================================================
@@ -173,7 +156,6 @@ set(SharedLib "shared")
 #
 #=============================================================================
 set(SPDir "${CMAKE_SOURCE_DIR}/code")
-set(MPDir "${CMAKE_SOURCE_DIR}/codemp")
 set(JK2SPDir "${CMAKE_SOURCE_DIR}/codeJK2")
 set(SharedDir ${CMAKE_SOURCE_DIR}/shared)
 set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/lib")
@@ -382,15 +364,4 @@ add_subdirectory(lib/minizip)
 add_subdirectory(${SPDir})
 if(BuildJK2SPGame)
 	add_subdirectory("${JK2SPDir}/game")
-endif()
-
-add_subdirectory(${MPDir})
-
-if(BuildSymbolServer)
-	add_subdirectory("tools/WinSymbol")
-endif()
-
-if(BuildTests)
-	enable_testing()
-	add_subdirectory("tests")
 endif()

@@ -790,7 +790,6 @@ public:
 	int			inSpaceSuffocation;
 	int			inSpaceIndex;
 
-
 	void sg_export(
 		ojk::SavedGameHelper& saved_game) const
 	{
@@ -1280,6 +1279,17 @@ Ghoul2 Insert End
 	int			forcePushTime;
 	int			forcePuller;	//who force-pulled me (so we don't damage them if we hit them)
 
+
+	struct {
+		struct {
+			bool spawnedBy;
+		} inclementWeather;
+
+		struct {
+			vec3_t oldModelScale;
+			float scaleAmount;
+		} giants;
+	} mutators;
 
 	void sg_export(
 		ojk::SavedGameHelper& saved_game) const

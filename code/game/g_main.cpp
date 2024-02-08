@@ -30,6 +30,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "b_local.h"
 #include "anims.h"
 #include "objectives.h"
+#include "g_mutators.h"
+
 #include "../cgame/cg_local.h"	// yeah I know this is naughty, but we're shipping soon...
 
 //rww - RAGDOLL_BEGIN
@@ -37,6 +39,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 //rww - RAGDOLL_END
 
 #include "qcommon/ojk_saved_game_helper.h"
+#include "qcommon/q_shared.h"
 #include "qcommon/q_version.h"
 
 extern void WP_SaberLoadParms( void );
@@ -698,7 +701,7 @@ void G_InitCvars( void ) {
 
 	g_broadsword = gi.cvar( "broadsword", "1", 0);
 
-	g_allowBunnyhopping = gi.cvar( "g_allowBunnyhopping", "0", 0 );
+	g_allowBunnyhopping = gi.cvar( "g_allowBunnyhopping", "0", CVAR_ARCHIVE );
 
 	gi.cvar( "tier_storyinfo", "0", CVAR_ROM|CVAR_SAVEGAME|CVAR_NORESTART);
 	gi.cvar( "tiers_complete", "", CVAR_ROM|CVAR_SAVEGAME|CVAR_NORESTART);
@@ -708,6 +711,7 @@ void G_InitCvars( void ) {
 
 	gi.cvar( "g_clearstats", "1", CVAR_ROM|CVAR_NORESTART);
 
+	gi.cvar( "mutator", "0:0:0" , CVAR_SERVERINFO | CVAR_ROM );
 }
 /*
 ============
@@ -722,7 +726,7 @@ InitGame
 int giMapChecksum;
 SavedGameJustLoaded_e g_eSavedGameJustLoaded;
 qboolean g_qbLoadTransition = qfalse;
-void InitGame(  const char *mapname, const char *spawntarget, int checkSum, const char *entities, int levelTime, int randomSeed, int globalTime, SavedGameJustLoaded_e eSavedGameJustLoaded, qboolean qbLoadTransition )
+void InitGame(  const char *mapname, const char *spawntarget, int checkSum, const char *entities, int levelTime, int globalTime, int randomSeed, SavedGameJustLoaded_e eSavedGameJustLoaded, qboolean qbLoadTransition )
 {
 	//rww - default this to 0, we will auto-set it to 1 if we run into a terrain ent
 	gi.cvar_set("RMG", "0");
@@ -737,6 +741,7 @@ void InitGame(  const char *mapname, const char *spawntarget, int checkSum, cons
 	gi.Printf ("gamename: %s\n", GAMEVERSION);
 	gi.Printf ("gamedate: %s\n", SOURCE_DATE);
 
+	Rand_Init( randomSeed );
 	srand( randomSeed );
 
 	G_InitCvars();
@@ -1909,6 +1914,8 @@ void G_RunFrame( int levelTime ) {
 	level.framenum++;
 	level.previousTime = level.time;
 	level.time = levelTime;
+
+	Mutator_CheckUpdate();
 
 	//ResetTeamCounters();
 	NAV::DecayDangerSenses();

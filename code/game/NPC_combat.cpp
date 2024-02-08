@@ -364,6 +364,11 @@ void G_AttackDelay( gentity_t *self, gentity_t *enemy )
 		*/
 		}
 
+		if (level.mutators.state.activeMutator == MUTATOR_DRUNK) {
+			// if we're drunk, they appear to be shooting very fast :^)
+			attDelay /= 3.0f;
+		}
+
 		if ( self->client->playerTeam == TEAM_PLAYER )
 		{//clamp it
 			if ( attDelay > 2000 )
@@ -1175,8 +1180,16 @@ void ShootThink( void )
 		delay = NPCInfo->burstSpacing + Q_irand(-150, 150);
 	}
 
+	int attackDebounce = NPC_AttackDebounceForWeapon();
+
+	if (level.mutators.state.activeMutator == MUTATOR_DRUNK) {
+		// if we're drunk, they appear to be shooting very fast :^)
+		delay /= 3.0f;
+		attackDebounce /= 3.0f;
+	}
+
 	NPCInfo->shotTime = level.time + delay;
-	NPC->attackDebounceTime = level.time + NPC_AttackDebounceForWeapon();
+	NPC->attackDebounceTime = level.time + attackDebounce;
 }
 
 /*
@@ -2290,7 +2303,7 @@ qboolean NPC_EvaluateShot( int hit, qboolean glassOK )
 		return qfalse;
 	}
 
-	if ( hit == NPC->enemy->s.number || (&g_entities[hit] != NULL && (g_entities[hit].svFlags&SVF_GLASS_BRUSH)) )
+	if ( hit == NPC->enemy->s.number || (g_entities[hit].inuse && (g_entities[hit].svFlags&SVF_GLASS_BRUSH)) )
 	{//can hit enemy or will hit glass, so shoot anyway
 		return qtrue;
 	}

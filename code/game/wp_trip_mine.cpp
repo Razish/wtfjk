@@ -259,7 +259,7 @@ static void WP_RemoveOldTraps( gentity_t *ent )
 		if ( removeMe != -1 )
 		{
 			//remove it... or blow it?
-			if ( &g_entities[foundLaserTraps[removeMe]] == NULL )
+			if ( !g_entities[foundLaserTraps[removeMe]].inuse )
 			{
 				break;
 			}

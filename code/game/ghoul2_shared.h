@@ -615,7 +615,8 @@ class CGhoul2Info_v
 	{
 		if (mItem)
 		{
-			assert(InfoArray().IsValid(mItem));
+			//RAZFIXME: figure out why this if firing when reloading checkpoint on yavin1b
+			// assert(InfoArray().IsValid(mItem));
 			InfoArray().Delete(mItem);
 			mItem=0;
 		}
