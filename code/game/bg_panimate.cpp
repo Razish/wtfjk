@@ -4631,7 +4631,7 @@ void PM_SetAnimFinal(int *torsoAnim,int *legsAnim,
 
 	// If It Is A Busted Entity, Don't Do Anything Here.
 	//---------------------------------------------------
-	if (!gent || !gent->client)
+	if (!gent || !gent->client || gent->playerModel == -1)
 	{
 		return;
 	}
