@@ -31,8 +31,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 # Customizable options
 #
 #=============================================================================
-option(BuildPortableVersion "Build portable version (does not read or write files from your user/home directory" OFF)
-
 option(BuildSPGame "Whether to create projects for the SP gamecode (jagamex86.dll)" ON)
 # MARKER: add BuildSPRdBadCandy
 
@@ -44,30 +42,6 @@ option(BuildJK2SPGame "Whether to create projects for the jk2 sp gamecode mod (j
 #
 # Note that we always use the bundled copy of minizip, since it is modified to
 # use Z_Malloc.
-
-set(UseInternalOpenALDefault OFF)
-set(UseInternalZlibDefault   OFF)
-set(UseInternalPNGDefault    OFF)
-set(UseInternalJPEGDefault   OFF)
-set(UseInternalSDL2Default   OFF)
-
-if(UseInternalLibs OR WIN32)
-  set(UseInternalOpenALDefault ON)
-  set(UseInternalZlibDefault   ON)
-  set(UseInternalPNGDefault    ON)
-  set(UseInternalJPEGDefault   ON)
-  set(UseInternalSDL2Default   ON)
-endif()
-
-if(APPLE)
-  set(UseInternalJPEGDefault ON)
-endif()
-
-option(UseInternalOpenAL "If set, use bundled OpenAL."  ${UseInternalOpenALDefault})
-option(UseInternalZlib   "If set, use bundled zlib."    ${UseInternalZlibDefault})
-option(UseInternalPNG    "If set, use bundled libpng."  ${UseInternalPNGDefault})
-option(UseInternalJPEG   "If set, use bundled libjpeg." ${UseInternalJPEGDefault})
-option(UseInternalSDL2   "If set, use bundled SDL2."    ${UseInternalSDL2Default})
 
 # This option won't appear on non-Apple platforms.
 if(APPLE)
@@ -109,7 +83,6 @@ else()
 	set(X86 OFF)
 	if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
 		set(Architecture "arm64")
-		add_definitions(-DPNG_ARM_NEON_OPT=0)
 	elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
 		set(Architecture "arm")
 	elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^i.86$")
@@ -281,10 +254,6 @@ endif()
 set(SharedDefines ${SharedDefines} "$<$<CONFIG:Debug>:_DEBUG>")
 set(SharedDefines ${SharedDefines} "$<$<NOT:$<CONFIG:Debug>>:FINAL_BUILD>")
 
-if(BuildPortableVersion)
-	set(BUILD_PORTABLE ON)
-endif()
-
 #=============================================================================
 #
 # Generate version file
@@ -339,26 +308,6 @@ set(SharedCommonSafeFiles
 # Adding all of the projects
 #
 #=============================================================================
-if(UseInternalJPEG)
-  add_subdirectory(lib/jpeg-9a)
-else()
-  find_package(JPEG REQUIRED)
-endif()
-
-if(UseInternalZlib)
-  add_subdirectory(lib/zlib)
-else()
-  find_package(ZLIB REQUIRED)
-endif()
-
-if(UseInternalPNG)
-  add_subdirectory(lib/libpng)
-else()
-  find_package(PNG REQUIRED)
-endif()
-
-# Always use bundled minizip (sets MINIZIP_{LIBRARIES,INCLUDE_DIR})
-add_subdirectory(lib/minizip)
 
 # Add projects
 add_subdirectory(${SPDir})

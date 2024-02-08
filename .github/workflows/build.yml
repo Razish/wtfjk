@@ -19,16 +19,12 @@ on:
 
 jobs:
   msvc:
-    name: Windows ${{ matrix.arch }} ${{ matrix.build_type }} (${{ matrix.portable }})
+    name: Windows ${{ matrix.arch }} ${{ matrix.build_type }}
     runs-on: windows-2022
     strategy:
       matrix:
         arch: [x86, x86_64]
         build_type: [Debug, Release]
-        portable: [Portable, Non-Portable]
-        exclude:
-          - build_type: Debug
-            portable: Portable
         include:
           - arch: x86
             platform: Win32
@@ -49,12 +45,7 @@ jobs:
         working-directory: ${{ github.workspace }}/build
         run: |
           OPTIONS="-DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_INSTALL_PREFIX=bin"
-          if [ "${{ matrix.portable }}" == "Portable" ]; then
-            OPTIONS+=" -DBuildPortableVersion=ON"
-          else
-            OPTIONS+=" -DBuildPortableVersion=OFF"
-          fi
-          OPTIONS+=" -DBuildJK2SPEngine=ON -DBuildJK2SPGame=ON -DBuildJK2SPRdVanilla=ON"
+          OPTIONS+=" -DBuildJK2SPGame=ON"
           cmake $GITHUB_WORKSPACE -A ${{ matrix.platform }} $OPTIONS
 
       - name: Build
@@ -71,101 +62,25 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.build_type == 'Release' }}
         with:
-          name: OpenJK-windows-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
+          name: WtfJK-windows-${{ matrix.arch }}-${{ matrix.build_type }}
           path: ${{ github.workspace }}/build/bin/JediAcademy
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.build_type == 'Release' }}
         with:
-          name: OpenJO-windows-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
-          path: ${{ github.workspace }}/build/bin/JediOutcast
-          if-no-files-found: error
-
-  msvcxp:
-    name: WinXP ${{ matrix.arch }} ${{ matrix.build_type }} (${{ matrix.portable }})
-    runs-on: windows-2022
-    strategy:
-      matrix:
-        arch: [x86, x86_64]
-        build_type: [Release]
-        portable: [Non-Portable]
-        include:
-          - arch: x86
-            platform: Win32
-          - arch: x86_64
-            platform: x64
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Install v141_xp Toolchain
-        continue-on-error: true
-        shell: powershell
-        run: |
-          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-          $WorkLoads = '--add Microsoft.VisualStudio.Component.WinXP'
-          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"", $WorkLoads, '--quiet', '--norestart', '--nocache')
-          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
-          if ($process.ExitCode -eq 0) {
-              Write-Host "components have been successfully added"
-          } else {
-              Write-Host "components were not installed"
-          }
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
-
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{ github.workspace }}/build
-
-      - name: Configure CMake
-        shell: bash
-        working-directory: ${{ github.workspace }}/build
-        run: |
-          OPTIONS="-DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_INSTALL_PREFIX=bin"
-          if [ "${{ matrix.portable }}" == "Portable" ]; then
-            OPTIONS+=" -DBuildPortableVersion=ON"
-          else
-            OPTIONS+=" -DBuildPortableVersion=OFF"
-          fi
-          OPTIONS+=" -DBuildJK2SPEngine=ON -DBuildJK2SPGame=ON -DBuildJK2SPRdVanilla=ON"
-          cmake $GITHUB_WORKSPACE -T v141_xp -A ${{ matrix.platform }} $OPTIONS
-
-      - name: Build
-        working-directory: ${{ github.workspace }}/build
-        shell: bash
-        run: cmake --build . --config ${{ matrix.build_type }} -j $NUMBER_OF_PROCESSORS
-
-      - name: Install
-        if: ${{ matrix.build_type == 'Release' }}
-        working-directory: ${{ github.workspace }}/build
-        shell: bash
-        run: cmake --install . --config ${{ matrix.build_type }}
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ matrix.build_type == 'Release' }}
-        with:
-          name: OpenJK-windowsxp-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
-          path: ${{ github.workspace }}/build/bin/JediAcademy
-          if-no-files-found: error
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ matrix.build_type == 'Release' }}
-        with:
-          name: OpenJO-windowsxp-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
+          name: WtfJO-windows-${{ matrix.arch }}-${{ matrix.build_type }}
           path: ${{ github.workspace }}/build/bin/JediOutcast
           if-no-files-found: error
 
   ubuntu:
-    name: Ubuntu ${{ matrix.arch }} ${{ matrix.build_type }} (${{ matrix.portable }})
+    name: Ubuntu ${{ matrix.arch }} ${{ matrix.build_type }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         arch: [x86, x86_64]
         build_type: [Debug, Release]
-        portable: [Non-Portable]
 
     steps:
       - uses: actions/checkout@v3
@@ -175,13 +90,10 @@ jobs:
           if [ ${{ matrix.arch }} == "x86" ]; then
             sudo dpkg --add-architecture i386
             sudo apt-get -qq update
-            sudo apt-get -y install aptitude
-            sudo apt-get -y install gcc-multilib g++-multilib ninja-build
-            sudo apt-get -y install --allow-downgrades libpcre2-8-0:i386 libjpeg-dev:i386 libpng-dev:i386 libcurl4-openssl-dev:i386
-            sudo aptitude -y install libglib2.0-dev:i386 libsdl2-dev:i386
+            sudo apt-get -y install gcc-multilib g++-multilib
           else
             sudo apt-get -qq update
-            sudo apt-get install libjpeg-dev libpng-dev zlib1g-dev libsdl2-dev
+            sudo apt-get install
           fi
           cmake -E make_directory ${{ github.workspace }}/build
 
@@ -190,15 +102,10 @@ jobs:
         working-directory: ${{ github.workspace }}/build
         run: |
           OPTIONS="-DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install"
-          if [ "${{ matrix.portable }}" == "Portable" ]; then
-            OPTIONS+=" -DUseInternalLibs=ON -DBuildPortableVersion=ON"
-          else
-            OPTIONS+=" -DUseInternalLibs=OFF -DBuildPortableVersion=OFF"
-          fi
           if [ ${{ matrix.arch }} == "x86" ]; then
             OPTIONS+=" -DCMAKE_TOOLCHAIN_FILE=cmake/Toolchains/linux-i686.cmake"
           fi
-          OPTIONS+=" -DBuildJK2SPEngine=ON -DBuildJK2SPGame=ON -DBuildJK2SPRdVanilla=ON"
+          OPTIONS+=" -DBuildJK2SPGame=ON"
           cmake $GITHUB_WORKSPACE $OPTIONS
 
       - name: Build
@@ -212,48 +119,46 @@ jobs:
         shell: bash
         run: cmake --install .
 
-      - name: Create OpenJK binary archive
+      - name: Create WtfJK binary archive
         if: ${{ matrix.build_type == 'Release' }}
         working-directory: ${{ github.workspace }}/install/JediAcademy
         shell: bash
-        run: tar -czvf OpenJK-linux-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz *
+        run: tar -czvf WtfJK-linux-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz *
 
-      - name: Create OpenJO binary archive
+      - name: Create WtfJO binary archive
         if: ${{ matrix.build_type == 'Release' }}
         working-directory: ${{ github.workspace }}/install/JediOutcast
         shell: bash
-        run: tar -czvf OpenJO-linux-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz *
+        run: tar -czvf WtfJO-linux-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz *
 
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.build_type == 'Release' }}
         with:
-          name: OpenJK-linux-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
-          path: ${{github.workspace}}/install/JediAcademy/OpenJK-linux-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz
+          name: WtfJK-linux-${{ matrix.arch }}-${{ matrix.build_type }}
+          path: ${{github.workspace}}/install/JediAcademy/WtfJK-linux-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.build_type == 'Release' }}
         with:
-          name: OpenJO-linux-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
-          path: ${{github.workspace}}/install/JediOutcast/OpenJO-linux-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz
+          name: WtfJO-linux-${{ matrix.arch }}-${{ matrix.build_type }}
+          path: ${{github.workspace}}/install/JediOutcast/WtfJO-linux-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz
           if-no-files-found: error
 
   macos:
-    name: macOS ${{ matrix.arch }} ${{ matrix.build_type }} (${{ matrix.portable}})
+    name: macOS ${{ matrix.arch }} ${{ matrix.build_type }}
     runs-on: macos-12
     strategy:
       fail-fast: false
       matrix:
         arch: [x86_64]
         build_type: [Debug, Release]
-        portable: [Non-Portable]
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Create Build Environment
         run: |
-          brew install zlib libjpeg libpng sdl2
           cmake -E make_directory ${{ github.workspace }}/build
 
       - name: Configure CMake
@@ -261,12 +166,7 @@ jobs:
         working-directory: ${{ github.workspace }}/build
         run: |
           OPTIONS="-DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/install"
-          if [ "${{ matrix.portable }}" == "Portable" ]; then
-            OPTIONS+=" -DUseInternalLibs=ON -DBuildPortableVersion=ON"
-          else
-            OPTIONS+=" -DUseInternalLibs=OFF -DBuildPortableVersion=OFF"
-          fi
-          OPTIONS+=" -DBuildJK2SPEngine=ON -DBuildJK2SPGame=ON -DBuildJK2SPRdVanilla=ON"
+          OPTIONS+=" -DBuildJK2SPGame=ON"
           cmake $GITHUB_WORKSPACE $OPTIONS
 
       - name: Build
@@ -280,34 +180,32 @@ jobs:
         shell: bash
         run: cmake --install .
 
-      - name: Create OpenJK binary archive
+      - name: Create WtfJK binary archive
         if: ${{ matrix.build_type == 'Release' }}
         working-directory: ${{ github.workspace }}/install/JediAcademy
         shell: bash
         run: |
-          chmod +x openjk.x86_64.app/Contents/MacOS/openjk.x86_64
-          tar -czvf openjk-macos-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz *
+          tar -czvf wtfjk-macos-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz *
 
-      - name: Create OpenJO binary archive
+      - name: Create WtfJO binary archive
         if: ${{ matrix.build_type == 'Release' }}
         working-directory: ${{ github.workspace }}/install/JediOutcast
         shell: bash
         run: |
-          chmod +x openjo_sp.x86_64.app/Contents/MacOS/openjo_sp.x86_64
-          tar -czvf openjo_sp-macos-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz *
+          tar -czvf wtfjo_sp-macos-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz *
 
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.build_type == 'Release' }}
         with:
-          name: OpenJK-macos-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
-          path: ${{ github.workspace }}/install/JediAcademy/openjk-macos-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz
+          name: WtfJK-macos-${{ matrix.arch }}-${{ matrix.build_type }}
+          path: ${{ github.workspace }}/install/JediAcademy/wtfjk-macos-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v3
         if: ${{ matrix.build_type == 'Release' }}
         with:
-          name: OpenJO-macos-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}
-          path: ${{ github.workspace }}/install/JediOutcast/openjo_sp-macos-${{ matrix.arch }}-${{ matrix.build_type }}-${{ matrix.portable }}.tar.gz
+          name: wtfjo-macos-${{ matrix.arch }}-${{ matrix.build_type }}
+          path: ${{ github.workspace }}/install/JediOutcast/wtfjo_sp-macos-${{ matrix.arch }}-${{ matrix.build_type }}.tar.gz
           if-no-files-found: error
 
   create-latest:
@@ -324,17 +222,17 @@ jobs:
 
       - name: Create binary archives
         run: |
-          7z a -r OpenJK-windows-x86.zip ./OpenJK-windows-x86-Release-Non-Portable/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
-          7z a -r OpenJK-windows-x86_64.zip ./OpenJK-windows-x86_64-Release-Non-Portable/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
-          mv ./OpenJK-linux-x86-Release-Non-Portable/* OpenJK-linux-x86.tar.gz
-          mv ./OpenJK-linux-x86_64-Release-Non-Portable/* OpenJK-linux-x86_64.tar.gz
-          mv ./OpenJK-macos-x86_64-Release-Non-Portable/* OpenJK-macos-x86_64.tar.gz
+          7z a -r WtfJK-windows-x86.zip ./WtfJK-windows-x86-Release/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
+          7z a -r WtfJK-windows-x86_64.zip ./WtfJK-windows-x86_64-Release/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
+          mv ./WtfJK-linux-x86-Release/* WtfJK-linux-x86.tar.gz
+          mv ./WtfJK-linux-x86_64-Release/* WtfJK-linux-x86_64.tar.gz
+          mv ./WtfJK-macos-x86_64-Release/* WtfJK-macos-x86_64.tar.gz
 
-          7z a -r OpenJO-windows-x86.zip ./OpenJO-windows-x86-Release-Non-Portable/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
-          7z a -r OpenJO-windows-x86_64.zip ./OpenJO-windows-x86_64-Release-Non-Portable/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
-          mv ./OpenJO-linux-x86-Release-Non-Portable/* OpenJO-linux-x86.tar.gz
-          mv ./OpenJO-linux-x86_64-Release-Non-Portable/* OpenJO-linux-x86_64.tar.gz
-          mv ./OpenJO-macos-x86_64-Release-Non-Portable/* OpenJO-macos-x86_64.tar.gz
+          7z a -r WtfJO-windows-x86.zip ./WtfJO-windows-x86-Release/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
+          7z a -r WtfJO-windows-x86_64.zip ./WtfJO-windows-x86_64-Release/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
+          mv ./WtfJO-linux-x86-Release/* WtfJO-linux-x86.tar.gz
+          mv ./WtfJO-linux-x86_64-Release/* WtfJO-linux-x86_64.tar.gz
+          mv ./WtfJO-macos-x86_64-Release/* WtfJO-macos-x86_64.tar.gz
 
       - name: Create latest build
         uses: marvinpinto/action-automatic-releases@latest
@@ -355,44 +253,44 @@ jobs:
     strategy:
       matrix:
         include:
-          - artifact_dir: OpenJK-windows-x86-Release-Non-Portable/JediAcademy
-            artifact_name: OpenJK-windows-x86.zip
+          - artifact_dir: WtfJK-windows-x86-Release/JediAcademy
+            artifact_name: WtfJK-windows-x86.zip
             zip: true
 
-          - artifact_dir: OpenJK-windows-x86_64-Release-Non-Portable/JediAcademy
-            artifact_name: OpenJK-windows-x86_64.zip
+          - artifact_dir: WtfJK-windows-x86_64-Release/JediAcademy
+            artifact_name: WtfJK-windows-x86_64.zip
             zip: true
 
-          - artifact_dir: OpenJK-linux-x86-Release-Non-Portable
-            artifact_name: OpenJK-linux-x86.tar.gz
+          - artifact_dir: WtfJK-linux-x86-Release
+            artifact_name: WtfJK-linux-x86.tar.gz
             zip: false
 
-          - artifact_dir: OpenJK-linux-x86_64-Release-Non-Portable
-            artifact_name: OpenJK-linux-x86_64.tar.gz
+          - artifact_dir: WtfJK-linux-x86_64-Release
+            artifact_name: WtfJK-linux-x86_64.tar.gz
             zip: false
 
-          - artifact_dir: OpenJK-macos-x86_64-Release-Non-Portable
-            artifact_name: OpenJK-macos-x86_64.tar.gz
+          - artifact_dir: WtfJK-macos-x86_64-Release
+            artifact_name: WtfJK-macos-x86_64.tar.gz
             zip: false
 
-          - artifact_dir: OpenJO-windows-x86-Release-Non-Portable/JediOutcast
-            artifact_name: OpenJO-windows-x86.zip
+          - artifact_dir: WtfJO-windows-x86-Release/JediOutcast
+            artifact_name: WtfJO-windows-x86.zip
             zip: true
 
-          - artifact_dir: OpenJO-windows-x86_64-Release-Non-Portable/JediOutcast
-            artifact_name: OpenJO-windows-x86_64.zip
+          - artifact_dir: WtfJO-windows-x86_64-Release/JediOutcast
+            artifact_name: WtfJO-windows-x86_64.zip
             zip: true
 
-          - artifact_dir: OpenJO-linux-x86-Release-Non-Portable
-            artifact_name: OpenJO-linux-x86.tar.gz
+          - artifact_dir: WtfJO-linux-x86-Release
+            artifact_name: WtfJO-linux-x86.tar.gz
             zip: false
 
-          - artifact_dir: OpenJO-linux-x86_64-Release-Non-Portable
-            artifact_name: OpenJO-linux-x86_64.tar.gz
+          - artifact_dir: WtfJO-linux-x86_64-Release
+            artifact_name: WtfJO-linux-x86_64.tar.gz
             zip: false
 
-          - artifact_dir: OpenJO-macos-x86_64-Release-Non-Portable
-            artifact_name: OpenJO-macos-x86_64.tar.gz
+          - artifact_dir: WtfJO-macos-x86_64-Release
+            artifact_name: WtfJO-macos-x86_64.tar.gz
             zip: false
 
     steps:
