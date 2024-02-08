@@ -12,11 +12,10 @@
 ## TODO
 
 - think of more mutators
-- make drunk mode crosshair sway a bit more chaotically
 - port rd-badcandy for visual effects (glsl)
   - noir
   - acid trip
-- obtain/create assets for mutators (tinnitus, models)
+- obtain/create assets for mutators (tinnitus, models, NPCs)
 
 ## MUTATOR IDEAS
 

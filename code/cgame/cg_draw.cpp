@@ -2553,10 +2553,10 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 	float		x, y;
 
 	// for drunk mode
-	const float waveAmplitude = 3.0f;
+	const float waveAmplitude = 6.0f;
 	const float waveFrequency = 0.666f;
 	const float phaseOne = cg.time / 1000.0 * waveFrequency * M_PI * 2;
-	const float phaseTwo = (cg.time + 500) / 666.0 * waveFrequency * 0.666 * M_PI;
+	const float phaseTwo = cg.time / 666.0 * waveFrequency * 0.666 * M_PI;
 	const float drunkOffsetOne = waveAmplitude * sin(phaseOne);
 	const float drunkOffsetTwo = waveAmplitude * cos(phaseTwo);
 	const float drunkOffset = drunkOffsetOne + drunkOffsetTwo;
@@ -2770,9 +2770,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 
 	if (cg.mutators.state.activeMutator == MUTATOR_DRUNK) {
 		x += drunkOffsetOne;
-		x -= drunkOffsetTwo;
-		y += drunkOffsetOne;
-		y -= drunkOffsetTwo;
+		y += drunkOffsetTwo;
 	}
 
 	if ( cg.snap->ps.viewEntity > 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD )
