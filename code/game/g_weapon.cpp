@@ -24,10 +24,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 // g_weapon.c
 // perform the server side effects of a weapon firing
 
+#include "bg_mutators.h"
+#include "bg_public.h"
 #include "g_local.h"
 #include "g_functions.h"
 #include "anims.h"
 #include "b_local.h"
+#include "teams.h"
+#include "weapons.h"
 #include "wp_saber.h"
 #include "g_vehicles.h"
 #include "w_local.h"
@@ -1182,6 +1186,81 @@ void WP_FireScepter( gentity_t *ent, qboolean alt_fire )
 	*/
 }
 
+void WP_MouseMissileDie(gentity_t *self) {
+	if ( level.mutators.state.activeMutator != MUTATOR_MOUSEBLASTERS ) {
+		self->nextthink = level.time + FRAMETIME;
+		self->e_ThinkFunc = thinkF_G_FreeEntity;
+		return;
+	}
+
+	self->takedamage = qfalse;
+	self->s.loopSound = 0;
+
+	vec3_t up = { 0, 0, 1 };
+	G_PlayEffect( "sparks/spark", self->currentOrigin, up);
+
+	gentity_t *NPCspawner = G_Spawn();
+	if (!NPCspawner) {
+		gi.Printf(S_COLOR_RED "NPC_Spawn Error: Out of entities!\n");
+		return;
+	}
+
+	NPCspawner->e_ThinkFunc = thinkF_G_FreeEntity;
+	NPCspawner->nextthink = level.time + FRAMETIME;
+	G_SetOrigin(NPCspawner, self->currentOrigin);
+	VectorCopy(NPCspawner->currentOrigin, NPCspawner->s.origin);
+	gi.linkentity(NPCspawner);
+	NPCspawner->NPC_type = Q_strlwr(G_NewString("mouse"));
+	NPCspawner->NPC_targetname = G_NewString(""); // umm
+	NPCspawner->count = 1;
+	NPCspawner->delay = 0;
+	NPCspawner->wait = FRAMETIME;
+
+	NPC_PrecacheByClassName(NPCspawner->NPC_type);
+	gentity_t *spawned = NPC_Spawn(NPCspawner, NPCspawner, NPCspawner);
+
+	spawned->client->NPC_class = CLASS_DESANN;
+	spawned->NPC->aiFlags |= NPCAI_WALKING|NPCAI_JUMP|NPCAI_NO_JEDI_DELAY;
+	spawned->NPC->behaviorState = BS_HUNT_AND_KILL;
+	spawned->NPC->defaultBehavior = BS_FLEE;
+	spawned->NPC->scriptFlags |= SCF_RUNNING|SCF_CHASE_ENEMIES|SCF_LOOK_FOR_ENEMIES;
+	spawned->client->playerTeam = TEAM_ENEMY;
+	spawned->client->enemyTeam = TEAM_PLAYER;
+	spawned->client->ps.weapon = WP_DISRUPTOR;
+
+	self->nextthink = level.time + FRAMETIME;
+	self->e_ThinkFunc = thinkF_G_FreeEntity;
+}
+
+static void WP_FireMouseBlaster(gentity_t *ent) {
+	const float velocity = 800.0f;
+	const float mouseBboxSize = 8.0f;
+
+	vec3_t start;
+	VectorCopy(muzzle, start);
+	WP_TraceSetStart(ent, start, vec3_origin, vec3_origin);
+
+	gentity_t *missile = CreateMissile(start, forwardVec, velocity, 1500, ent, qtrue);
+	missile->classname = "magic_mouse_missile_:)";
+	missile->s.weapon = WP_BLASTER;
+	missile->e_ThinkFunc = thinkF_WP_MouseMissileDie;
+	missile->s.boltInfo = Q3_INFINITE;
+	missile->mass = 10;
+	missile->s.pos.trType = TR_GRAVITY;
+	missile->s.pos.trDelta[2] += 30.0f; // give a slight boost in the upward direction
+	missile->damage = 0;
+	missile->dflags = DAMAGE_NO_DAMAGE;
+	missile->methodOfDeath = MOD_UNKNOWN;
+	missile->splashMethodOfDeath = MOD_UNKNOWN;
+	missile->clipmask = MASK_SHOT | CONTENTS_LIGHTSABER;
+	missile->splashDamage = 0;
+	missile->splashRadius = 0;
+	missile->s.eFlags |= EF_BOUNCE;
+	missile->bounceCount = Q3_INFINITE;
+	VectorSet(missile->maxs, mouseBboxSize, mouseBboxSize, mouseBboxSize);
+	VectorScale(missile->maxs, -1, missile->mins);
+}
+
 extern Vehicle_t *G_IsRidingVehicle( gentity_t *ent );
 //---------------------------------------------------------
 void FireWeapon( gentity_t *ent, qboolean alt_fire )
@@ -1381,164 +1460,169 @@ void FireWeapon( gentity_t *ent, qboolean alt_fire )
 	}
 
 	// fire the specific weapon
-	switch( ent->s.weapon )
-	{
-	// Player weapons
-	//-----------------
-	case WP_SABER:
-		return;
-		break;
-
-	case WP_BRYAR_PISTOL:
-	case WP_BLASTER_PISTOL:
-		WP_FireBryarPistol( ent, alt_fire );
-		break;
-
-	case WP_BLASTER:
-		WP_FireBlaster( ent, alt_fire );
-		break;
-
-	case WP_TUSKEN_RIFLE:
-		if ( alt_fire )
+	if ( level.mutators.state.activeMutator == MUTATOR_MOUSEBLASTERS && ent->NPC && ent->client->NPC_class != CLASS_VEHICLE ) {
+		WP_FireMouseBlaster( ent );
+	}
+	else {
+		switch( ent->s.weapon )
 		{
-			WP_FireTuskenRifle( ent );
-		}
-		else
-		{
-			WP_Melee( ent );
-		}
-		break;
+		// Player weapons
+		//-----------------
+		case WP_SABER:
+			return;
+			break;
 
-	case WP_DISRUPTOR:
-		alert = 50; // if you want it to alert enemies, remove this
-		WP_FireDisruptor( ent, alt_fire );
-		break;
+		case WP_BRYAR_PISTOL:
+		case WP_BLASTER_PISTOL:
+			WP_FireBryarPistol( ent, alt_fire );
+			break;
 
-	case WP_BOWCASTER:
-		WP_FireBowcaster( ent, alt_fire );
-		break;
+		case WP_BLASTER:
+			WP_FireBlaster( ent, alt_fire );
+			break;
 
-	case WP_REPEATER:
-		WP_FireRepeater( ent, alt_fire );
-		break;
-
-	case WP_DEMP2:
-		WP_FireDEMP2( ent, alt_fire );
-		break;
-
-	case WP_FLECHETTE:
-		WP_FireFlechette( ent, alt_fire );
-		break;
-
-	case WP_ROCKET_LAUNCHER:
-		WP_FireRocket( ent, alt_fire );
-		break;
-
-	case WP_CONCUSSION:
-		WP_Concussion( ent, alt_fire );
-		break;
-
-	case WP_THERMAL:
-		WP_FireThermalDetonator( ent, alt_fire );
-		break;
-
-	case WP_TRIP_MINE:
-		alert = 0; // if you want it to alert enemies, remove this
-		WP_PlaceLaserTrap( ent, alt_fire );
-		break;
-
-	case WP_DET_PACK:
-		alert = 0; // if you want it to alert enemies, remove this
-		WP_FireDetPack( ent, alt_fire );
-		break;
-
-	case WP_BOT_LASER:
-		WP_BotLaser( ent );
-		break;
-
-	case WP_EMPLACED_GUN:
-		// doesn't care about whether it's alt-fire or not.  We can do an alt-fire if needed
-		WP_EmplacedFire( ent );
-		break;
-
-	case WP_MELEE:
-		alert = 0; // if you want it to alert enemies, remove this
-		if ( !alt_fire || !g_debugMelee->integer )
-		{
-			WP_Melee( ent );
-		}
-		break;
-
-	case WP_ATST_MAIN:
-		WP_ATSTMainFire( ent );
-		break;
-
-	case WP_ATST_SIDE:
-
-		// TEMP
-		if ( alt_fire )
-		{
-//			WP_FireRocket( ent, qfalse );
-			WP_ATSTSideAltFire(ent);
-		}
-		else
-		{
-			// FIXME!
-		/*	if ( ent->s.number == 0
-				&& ent->client->NPC_class == CLASS_VEHICLE
-				&& vehicleData[((CVehicleNPC *)ent->NPC)->m_iVehicleTypeID].type == VH_FIGHTER )
+		case WP_TUSKEN_RIFLE:
+			if ( alt_fire )
 			{
-				WP_ATSTMainFire( ent );
+				WP_FireTuskenRifle( ent );
 			}
-			else*/
+			else
 			{
-				WP_ATSTSideFire(ent);
+				WP_Melee( ent );
 			}
-		}
-		break;
+			break;
 
-	case WP_TIE_FIGHTER:
-		// TEMP
-		WP_EmplacedFire( ent );
-		break;
+		case WP_DISRUPTOR:
+			alert = 50; // if you want it to alert enemies, remove this
+			WP_FireDisruptor( ent, alt_fire );
+			break;
 
-	case WP_RAPID_FIRE_CONC:
-		// TEMP
-		if ( alt_fire )
-		{
+		case WP_BOWCASTER:
+			WP_FireBowcaster( ent, alt_fire );
+			break;
+
+		case WP_REPEATER:
 			WP_FireRepeater( ent, alt_fire );
-		}
-		else
-		{
+			break;
+
+		case WP_DEMP2:
+			WP_FireDEMP2( ent, alt_fire );
+			break;
+
+		case WP_FLECHETTE:
+			WP_FireFlechette( ent, alt_fire );
+			break;
+
+		case WP_ROCKET_LAUNCHER:
+			WP_FireRocket( ent, alt_fire );
+			break;
+
+		case WP_CONCUSSION:
+			WP_Concussion( ent, alt_fire );
+			break;
+
+		case WP_THERMAL:
+			WP_FireThermalDetonator( ent, alt_fire );
+			break;
+
+		case WP_TRIP_MINE:
+			alert = 0; // if you want it to alert enemies, remove this
+			WP_PlaceLaserTrap( ent, alt_fire );
+			break;
+
+		case WP_DET_PACK:
+			alert = 0; // if you want it to alert enemies, remove this
+			WP_FireDetPack( ent, alt_fire );
+			break;
+
+		case WP_BOT_LASER:
+			WP_BotLaser( ent );
+			break;
+
+		case WP_EMPLACED_GUN:
+			// doesn't care about whether it's alt-fire or not.  We can do an alt-fire if needed
 			WP_EmplacedFire( ent );
+			break;
+
+		case WP_MELEE:
+			alert = 0; // if you want it to alert enemies, remove this
+			if ( !alt_fire || !g_debugMelee->integer )
+			{
+				WP_Melee( ent );
+			}
+			break;
+
+		case WP_ATST_MAIN:
+			WP_ATSTMainFire( ent );
+			break;
+
+		case WP_ATST_SIDE:
+
+			// TEMP
+			if ( alt_fire )
+			{
+	//			WP_FireRocket( ent, qfalse );
+				WP_ATSTSideAltFire(ent);
+			}
+			else
+			{
+				// FIXME!
+			/*	if ( ent->s.number == 0
+					&& ent->client->NPC_class == CLASS_VEHICLE
+					&& vehicleData[((CVehicleNPC *)ent->NPC)->m_iVehicleTypeID].type == VH_FIGHTER )
+				{
+					WP_ATSTMainFire( ent );
+				}
+				else*/
+				{
+					WP_ATSTSideFire(ent);
+				}
+			}
+			break;
+
+		case WP_TIE_FIGHTER:
+			// TEMP
+			WP_EmplacedFire( ent );
+			break;
+
+		case WP_RAPID_FIRE_CONC:
+			// TEMP
+			if ( alt_fire )
+			{
+				WP_FireRepeater( ent, alt_fire );
+			}
+			else
+			{
+				WP_EmplacedFire( ent );
+			}
+			break;
+
+		case WP_STUN_BATON:
+			WP_FireStunBaton( ent, alt_fire );
+			break;
+
+	//	case WP_BLASTER_PISTOL:
+		case WP_JAWA:
+			WP_FireBryarPistol( ent, qfalse ); // never an alt-fire?
+			break;
+
+		case WP_SCEPTER:
+			WP_FireScepter( ent, alt_fire );
+			break;
+
+		case WP_NOGHRI_STICK:
+			if ( !alt_fire )
+			{
+				WP_FireNoghriStick( ent );
+			}
+			//else does melee attack/damage/func
+			break;
+
+		case WP_TUSKEN_STAFF:
+		default:
+			return;
+			break;
 		}
-		break;
-
-	case WP_STUN_BATON:
-		WP_FireStunBaton( ent, alt_fire );
-		break;
-
-//	case WP_BLASTER_PISTOL:
-	case WP_JAWA:
-		WP_FireBryarPistol( ent, qfalse ); // never an alt-fire?
-		break;
-
-	case WP_SCEPTER:
-		WP_FireScepter( ent, alt_fire );
-		break;
-
-	case WP_NOGHRI_STICK:
-		if ( !alt_fire )
-		{
-			WP_FireNoghriStick( ent );
-		}
-		//else does melee attack/damage/func
-		break;
-
-	case WP_TUSKEN_STAFF:
-	default:
-		return;
-		break;
 	}
 
 	if ( !ent->s.number )

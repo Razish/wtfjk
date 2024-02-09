@@ -139,6 +139,8 @@ void GEntity_ThinkFunc(gentity_t *self)
 
 	THINKCASE( beacon_think )
 
+	THINKCASE( WP_MouseMissileDie )
+
 	default:
 		Com_Error(ERR_DROP, "GEntity_ThinkFunc: case %d not handled!\n",self->e_ThinkFunc);
 		break;

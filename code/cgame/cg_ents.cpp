@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // cg_ents.c -- present snapshot entities, happens every single frame
 
+#include "bg_mutators.h"
 #include "cg_headers.h"
 
 #include "cg_media.h"
@@ -31,6 +32,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "FxScheduler.h"
 #include "../game/wp_saber.h"
 #include "../game/g_vehicles.h"
+#include "cgame/cg_local.h"
 
 extern void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, int renderfx, int modelIndex, vec3_t origin, vec3_t angles);
 extern void CG_CheckSaberInWater( centity_t *cent, centity_t *scent, int saberNum, int modelIndex, vec3_t origin, vec3_t angles );
@@ -1105,8 +1107,6 @@ CG_Missile
 static void CG_Missile( centity_t *cent ) {
 	refEntity_t			ent;
 	entityState_t		*s1;
-	const weaponInfo_t	*weapon;
-	const weaponData_t  *wData;
 
 	if ( !cent->gent->inuse )
 		return;
@@ -1115,8 +1115,23 @@ static void CG_Missile( centity_t *cent ) {
 	if ( s1->weapon >= WP_NUM_WEAPONS ) {
 		s1->weapon = 0;
 	}
-	weapon = &cg_weapons[s1->weapon];
-	wData = &weaponData[s1->weapon];
+	const auto *weapon = &cg_weapons[s1->weapon];
+	const auto *wData = &weaponData[s1->weapon];
+
+	if ( cg.mutators.state.activeMutator == MUTATOR_MOUSEBLASTERS ) {
+		// this is horrible, but it works
+		static weaponData_t dummyWeaponData={};
+		static weaponInfo_t dummyWeaponInfo={};
+		memcpy(&dummyWeaponData, wData, sizeof(dummyWeaponData));
+		memcpy(&dummyWeaponInfo, weapon, sizeof(dummyWeaponInfo));
+		wData = &dummyWeaponData;
+		weapon = &dummyWeaponInfo;
+
+		Q_strncpyz(dummyWeaponData.missileMdl, "models/players/mouse/lower.md3", sizeof(dummyWeaponData.missileMdl));
+		dummyWeaponInfo.missileModel = cgi_R_RegisterModel(wData->missileMdl);
+		dummyWeaponInfo.alt_missileModel = dummyWeaponInfo.missileModel;
+		dummyWeaponInfo.alt_missileTrailFunc = dummyWeaponInfo.missileTrailFunc = nullptr;
+	}
 
 	if ( s1->pos.trType != TR_INTERPOLATE )
 	{

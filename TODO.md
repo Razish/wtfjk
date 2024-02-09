@@ -30,3 +30,4 @@
   - dickbutts randomly spawn in the map, become deformed and vanish
   - CoD hit markers
 - mine monster snarks
+- floor is lava - check ground trace over the last 10s, gradually increase height
