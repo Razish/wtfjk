@@ -21,11 +21,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
+#include "bg_mutators.h"
+#include "bg_public.h"
 #include "g_local.h"
 #include "g_functions.h"
 #include "../cgame/cg_local.h"
 #include "Q3_Interface.h"
 #include "qcommon/q_math.h"
+#include "teams.h"
 #include "wp_saber.h"
 #include "g_vehicles.h"
 #include "b_local.h"
@@ -5554,6 +5557,10 @@ extern cvar_t	*g_skippingcin;
 	ClientEndPowerUps( ent );
 	//try some idle anims on ent if getting no input and not moving for some time
 	G_CheckClientIdle( ent, ucmd );
+
+	if ( level.mutators.state.activeMutator == MUTATOR_PREDATOR && ent->s.number != 0 && ent->NPC && ent->client->NPC_class != CLASS_VEHICLE ) {
+		ent->client->ps.powerups[PW_CLOAKED] = level.mutators.state.time.next;
+	}
 }
 
 /*

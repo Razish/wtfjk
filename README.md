@@ -10,4 +10,4 @@ WTF JASP is licensed under GPLv2 as free software. You are free to use, modify a
 
 ## Maintainers (in alphabetical order)
 
-* Razish
+* razor

@@ -29,6 +29,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "../qcommon/sstring.h"
 #include "qcommon/ojk_saved_game_helper.h"
+#include "qcommon/q_string.h"
 
 //NOTENOTE: Be sure to change the mirrored code in g_shared.h
 typedef	std::map< sstring_t, unsigned char  >	namePrecache_m;
@@ -804,6 +805,9 @@ static void CG_RegisterSounds( void ) {
 		cgs.media.footsteps[FOOTSTEP_WOODWALK][i] = cgi_S_RegisterSound (name);
 		Com_sprintf (name, sizeof(name), "sound/player/footsteps/wood_run%i.wav", i+1);
 		cgs.media.footsteps[FOOTSTEP_WOODRUN][i] = cgi_S_RegisterSound (name);
+
+		Com_sprintf(name, sizeof(name), "sound/player/footsteps/tyrant%i.wav", i + 1);
+		cgs.media.footsteps[FOOTSTEP_TYRANT][i] = cgi_S_RegisterSound(name);
 	}
 
 	cg.loadLCARSStage = 1;

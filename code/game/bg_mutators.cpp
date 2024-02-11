@@ -1,9 +1,9 @@
 #include "bg_mutators.h"
 
 #ifdef SP_GAME
-	#include "g_local.h"
+#include "g_local.h"
 #else
-	#include "cg_local.h"
+#include "cg_local.h"
 #endif
 
 const stringID_table_t mutatorStrings[NUM_MUTATORS + 1] = {
@@ -26,14 +26,16 @@ const stringID_table_t mutatorStrings[NUM_MUTATORS + 1] = {
 	ENUM2STRING(MUTATOR_BOUNCYSANDCREATURES),
 	ENUM2STRING(MUTATOR_SLIPPERYSLOPE),
 	ENUM2STRING(MUTATOR_SECONDPERSONCAM),
+	ENUM2STRING(MUTATOR_PREDATOR),
+	ENUM2STRING(MUTATOR_TYRANT),
 	{NULL, -1}
 	// clang-format on
 };
 
 mutator_e BG_GetCurrentMutator(void) {
-	#ifdef SP_GAME
-		return level.mutators.state.activeMutator;
-	#else
-		return cg.mutators.activeMutator;
-	#endif
+#ifdef SP_GAME
+	return level.mutators.state.activeMutator;
+#else
+	return cg.mutators.activeMutator;
+#endif
 }

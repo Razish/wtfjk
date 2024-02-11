@@ -610,6 +610,7 @@ void SP_emplaced_gun( gentity_t *self );
 
 void SP_misc_turbobattery( gentity_t *base );
 
+void SP_NPC_Tyrant( gentity_t *self );
 
 spawn_t	spawns[] = {
 	{"info_player_start", SP_info_player_start},
@@ -821,6 +822,7 @@ spawn_t	spawns[] = {
 	{"NPC_Droid_Protocol", SP_NPC_Droid_Protocol },
 	{"NPC_Droid_Assassin", SP_NPC_Droid_Assassin },
 	{"NPC_Droid_Saber", SP_NPC_Droid_Saber },
+	{"NPC_Tyrant", SP_NPC_Tyrant },
 
 	//rwwFIXMEFIXME: Faked for testing NPCs (another other things) in RMG with sof2 assets
 	{"NPC_Colombian_Soldier", SP_NPC_Reborn },

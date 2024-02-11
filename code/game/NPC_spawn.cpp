@@ -4083,6 +4083,12 @@ void SP_NPC_Droid_Saber( gentity_t *self)
 	SP_NPC_spawner( self );
 }
 
+void SP_NPC_Tyrant(gentity_t *self) {
+	self->NPC_type = "tyrant";
+
+	SP_NPC_spawner(self);
+}
+
 //NPC console commands
 /*
 NPC_Spawn_f

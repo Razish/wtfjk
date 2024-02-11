@@ -21,6 +21,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
+#include "bg_public.h"
 #include "common_headers.h"
 
 #include "../rd-common/tr_public.h"
@@ -3109,6 +3110,14 @@ static void PM_WalkMove( void ) {
 		pm->ps->pm_flags &= ~PMF_TIME_KNOCKBACK;
 	}
 
+	if (level.mutators.state.activeMutator == MUTATOR_BOUNCYSANDCREATURES && pm->ps->groundEntityNum != ENTITYNUM_NONE && pm->ps->velocity[2] <= 0 &&
+		pm->gent->s.number == 0 && pm->gent->health > 0) {
+		pm->ps->velocity[2] += JUMP_VELOCITY;
+		pm->ps->pm_flags |= PMF_JUMP_HELD;
+		pm->cmd.upmove = 127;
+		return;
+	}
+
 	qboolean slide = qfalse;
 	if ( pm->ps->pm_type == PM_DEAD )
 	{//corpse
@@ -5293,6 +5302,16 @@ static void PM_GroundTrace( void ) {
 		// just hit the ground
 		if ( pm->debugLevel ) {
 			Com_Printf("%i:Land\n", c_pmove);
+		}
+
+		if (level.mutators.state.activeMutator == MUTATOR_BOUNCYSANDCREATURES && pm->gent->s.number == 0 && pm->gent->health > 0) {
+			pm->ps->velocity[2] += JUMP_VELOCITY;
+			pm->ps->pm_flags |= PMF_JUMP_HELD;
+			pm->cmd.upmove = 127;
+			pm->ps->groundEntityNum = ENTITYNUM_NONE;
+			pml.groundPlane = qfalse;
+			pml.walking = qfalse;
+			return;
 		}
 
 		//if ( !PM_ClientImpact( trace.entityNum, qtrue ) )
