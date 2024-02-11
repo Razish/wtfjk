@@ -383,6 +383,9 @@ extern	cvar_t	*g_ICARUSDebug;
 extern cvar_t	*g_npcdebug;
 
 extern	cvar_t	*g_allowBunnyhopping;
+
+extern	cvar_t	*g_sv_fps;
+
 extern gentity_t *player;
 //
 // g_spawn.c

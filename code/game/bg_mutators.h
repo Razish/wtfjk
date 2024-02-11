@@ -29,6 +29,7 @@ enum mutator_e {
 	MUTATOR_SECONDPERSONCAM,	 // experience the world from the eyes of every NPC watching you
 	MUTATOR_PREDATOR,			 // all enemies are cloaked
 	MUTATOR_TYRANT,				 // turn desann into a tyrant from RE: slow anims, only walks, stomp sound
+	MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉,			 // H̸̖̿Ę̴͗ ̴͇͘C̷̩̓O̶̼̓M̵̯̄Ë̵͎S̴̲̓
 	NUM_MUTATORS
 };
 

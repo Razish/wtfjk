@@ -10,6 +10,8 @@
 - giants: bboxes and saber/projectile collisions are not scaled 😭
 - second person: NPCs should constantly walk toward player
 - bouncysandcreatures: player sounds are not reset when it ends
+- bouncysandcreatures: if it starts during a cutscene, you exit the cutscene with the player model and regular orientation
+- bouncysandcreatures: sometimes your first movement will play a (death?) animation 😕
 
 ## TODO
 
