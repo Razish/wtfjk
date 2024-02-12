@@ -31,74 +31,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
 
-include(CMakeParseArguments)
-
-unset(ZIP_EXECUTABLE CACHE)
-if(WIN32)
-  if(NOT ZIP_EXECUTABLE)
-    find_program(ZIP_EXECUTABLE wzzip PATHS "$ENV{ProgramFiles}/WinZip")
-    if(ZIP_EXECUTABLE)
-      set(ZIP_COMMAND "${ZIP_EXECUTABLE}" -P "<ARCHIVE>" <FILES>)
-    endif()
-  endif()
-  
-  if(NOT ZIP_EXECUTABLE)
-    find_program(ZIP_EXECUTABLE wzzip PATHS "$ENV{ProgramW6432}/WinZip")
-    if(ZIP_EXECUTABLE)
-      set(ZIP_COMMAND "${ZIP_EXECUTABLE}" -P "<ARCHIVE>" <FILES>)
-    endif()
-  endif()
-  
-  if(NOT ZIP_EXECUTABLE)
-    find_program(ZIP_EXECUTABLE 7z PATHS "$ENV{ProgramFiles}/7-Zip")
-    if(ZIP_EXECUTABLE)
-      set(ZIP_COMMAND "${ZIP_EXECUTABLE}" a -tzip "<ARCHIVE>" <FILES>)
-    endif()
-  endif()
-  
-  if(NOT ZIP_EXECUTABLE)
-    find_program(ZIP_EXECUTABLE 7z PATHS "$ENV{ProgramW6432}/7-Zip")
-    if(ZIP_EXECUTABLE)
-      set(ZIP_COMMAND "${ZIP_EXECUTABLE}" a -tzip "<ARCHIVE>" <FILES>)
-    endif()
-  endif()
-  
-  if(NOT ZIP_EXECUTABLE)
-    find_program(ZIP_EXECUTABLE winrar PATHS "$ENV{ProgramFiles}/WinRAR")
-    if(ZIP_EXECUTABLE)
-      set(ZIP_COMMAND "${ZIP_EXECUTABLE}" a "<ARCHIVE>" <FILES>)
-    endif()
-  endif()
-  
-  if(NOT ZIP_EXECUTABLE)
-    find_program(ZIP_EXECUTABLE winrar PATHS "$ENV{ProgramW6432}/WinRAR")
-    if(ZIP_EXECUTABLE)
-      set(ZIP_COMMAND "${ZIP_EXECUTABLE}" a "<ARCHIVE>" <FILES>)
-    endif()
-  endif()
-endif()
-
-if(NOT ZIP_EXECUTABLE)
-  if(WIN32)
-    find_package(Cygwin)
-    find_program(ZIP_EXECUTABLE zip PATHS "${CYGWIN_INSTALL_PATH}/bin")
-  else()
-    find_program(ZIP_EXECUTABLE zip)
-  endif()
-  
-  if(ZIP_EXECUTABLE)
-    set(ZIP_COMMAND "${ZIP_EXECUTABLE}" -r "<ARCHIVE>" . -i<FILES>)
-  endif()
-endif()
-
-function(add_zip_command output)
-  set(MultiValueArgs FILES DEPENDS)
-  cmake_parse_arguments(ARGS "" "" "${MultiValueArgs}" ${ARGN})
-  
-  set(ZipCommand ${ZIP_COMMAND})
-  string(REPLACE <ARCHIVE> "${output}" ZipCommand "${ZipCommand}")
-  string(REPLACE <FILES> "${ARGS_FILES}" ZipCommand "${ZipCommand}")
-  add_custom_command(OUTPUT ${output}
-    COMMAND ${ZipCommand}
-    DEPENDS ${ARGS_DEPENDS})
-endfunction(add_zip_command)
+function(create_zip output_file input_files working_dir)
+	add_custom_command(
+		COMMAND ${CMAKE_COMMAND} -E tar "cf" "${output_file}" --format=zip -- ${input_files}
+		WORKING_DIRECTORY "${working_dir}"
+		OUTPUT  "${output_file}"
+		DEPENDS ${input_files}
+		COMMENT "Zipping to ${output_file}."
+	)
+endfunction()
