@@ -30,6 +30,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "g_shared.h"
 #include "objectives.h"
 #include "../cgame/cg_local.h"
+#include "teams.h"
 #include "wp_saber.h"
 #include "g_vehicles.h"
 #include "Q3_Interface.h"
@@ -3646,9 +3647,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	int			cliff_fall = 0;
 
 	if (level.mutators.state.activeMutator == MUTATOR_SPLIT) {
-		// FIXME: is there a better way to assert this? rosh_penin on yavin1b is ET_PLAYER 🤦
-		// FIXME: assert we're a splittable NPC (not vehicle...)
-		if (!Q_stricmp(self->classname, "NPC")) {
+		if (self->NPC && self->client->NPC_class != CLASS_VEHICLE) {
 			// pick a random direction and shove them :D
 			for (int i = 0; i < 2; i++) {
 				vec3_t targetDir = {Q_flrand(-1.0f, 1.0f), Q_flrand(-1.0f, 1.0f), Q_flrand(0.25f, 1.0f)};
@@ -3656,10 +3655,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				VectorMA(self->currentOrigin, 32.0f, targetDir, targetPos);
 				trace_t tr;
 				gi.trace(&tr, self->currentOrigin, self->mins, self->maxs, targetPos, self->s.number, self->clipmask, (EG2_Collision)0, 0);
-				gentity_t *split = SpawnSplitNPC(self, tr.endpos);
 
 				// FIXME: if tr.fraction < 1.0, iteratively trace away from tr.normal?
 
+				gentity_t *split = SpawnSplitNPC(self, tr.endpos);
 				if (split) {
 					VectorCopy(self->s.modelScale, split->s.modelScale);
 					VectorScale(split->s.modelScale, 0.75f, split->s.modelScale);

@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "bg_mutators.h"
 #include "common_headers.h"
+#include "teams.h"
 
 
 // define GAME_INCLUDE so that g_public.h does not define the
@@ -4728,6 +4729,11 @@ void PM_SetAnimFinal(int *torsoAnim,int *legsAnim,
 	if (BG_GetCurrentMutator() == MUTATOR_DRUNK && gent->s.number != 0) {
 		// speed everyone else up if we're drunk :)))
 		animSpeed *= 5.0f;
+	}
+
+	if ( gent->NPC && gent->client->NPC_class == CLASS_DESANN && !strcmp(gent->NPC_type, "tyrant") ) {
+		// tyrant animates slower
+		animSpeed *= 0.666666666f;
 	}
 
 	// If We Have A Blend Timer, Add The Blend Flag

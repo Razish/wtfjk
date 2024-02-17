@@ -735,12 +735,16 @@ void		TIMER_Remove( gentity_t *ent, const char *identifier );
 float NPC_GetHFOVPercentage( vec3_t spot, vec3_t from, vec3_t facing, float hFOV );
 float NPC_GetVFOVPercentage( vec3_t spot, vec3_t from, vec3_t facing, float vFOV );
 
+extern vec3_t playerMins;
+extern vec3_t playerMaxs;
+
 char *G_AddSpawnVarToken(const char *string);
 int G_CheckLedgeDive(gentity_t *self, float checkDist, const vec3_t checkVel, qboolean tryOpposite, qboolean tryPerp);
 int G_FindConfigstringIndex(const char *name, int start, int max, qboolean create);
 qboolean G_CallSpawn(gentity_t *ent);
 qboolean NPC_ParseParms(const char *NPCName, gentity_t *NPC);
 void CG_RegisterNPCCustomSounds(clientInfo_t *ci);
+void G_ChangePlayerModel(gentity_t *ent, const char *newModel);
 void G_RemovePlayerModel(gentity_t *ent);
 void G_SetG2PlayerModel(gentity_t *const ent, const char *modelName, const char *customSkin, const char *surfOff, const char *surfOn);
 void G_SpawnGEntityFromSpawnVars(void);

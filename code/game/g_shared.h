@@ -1289,6 +1289,13 @@ Ghoul2 Insert End
 			vec3_t oldModelScale;
 			float scaleAmount;
 		} giants;
+
+		struct {
+			char customBasicSoundDir[MAX_QPATH];
+			char customCombatSoundDir[MAX_QPATH];
+			char customExtraSoundDir[MAX_QPATH];
+			char customJediSoundDir[MAX_QPATH];
+		} bouncysandcreatures;
 	} mutators;
 
 	void sg_export(

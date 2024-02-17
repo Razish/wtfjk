@@ -2,6 +2,7 @@
 #include "cgame/cg_media.h"
 #include "../game/bg_mutators.h"
 #include "qcommon/q_shared.h"
+#include "teams.h"
 
 static void CG_RenderMeterHorizonal(float x, float y, float w, float h, float minValue, float maxValue, const vec4_t colour, const vec4_t background,
 									bool flipped) {
@@ -25,8 +26,8 @@ static void CG_RenderMeterHorizonal(float x, float y, float w, float h, float mi
 	}
 }
 
-void CG_DrawMutatorsHUD() {
-	if ( !cg.snap || !cg.mutators.state.time.current || !cg.mutators.state.time.next ) {
+void CG_DrawMutatorsHUD(void) {
+	if (!cg.snap || !cg.mutators.state.time.current || !cg.mutators.state.time.next) {
 		return;
 	}
 
@@ -42,8 +43,13 @@ void CG_DrawMutatorsHUD() {
 	const int timeElapsed = cg.snap->serverTime - cg.mutators.state.time.current; // hmm, sometimes this is > timeBetween by a couple frames
 	const int timeBetween = cg.mutators.state.time.next - cg.mutators.state.time.current;
 	const float fracElapsed = (float)Q_min(timeElapsed, timeBetween) / (float)timeBetween;
-	assert( fracElapsed >= 0.0f && fracElapsed <= 1.0f );
+	assert(fracElapsed >= 0.0f && fracElapsed <= 1.0f);
 	const float minValue = fracElapsed * SCREEN_WIDTH;
 	const float maxValue = SCREEN_WIDTH;
 	CG_RenderMeterHorizonal(0, 0, SCREEN_WIDTH, 8.0f, minValue, maxValue, colorTable[CT_RED], background, false);
+}
+
+bool CG_IsTyrant(const centity_t &cent) {
+	return cent.gent && cent.gent->s.eType == ET_PLAYER && cent.gent->NPC && cent.gent->client->NPC_class == CLASS_DESANN &&
+		   !strcmp(cent.gent->NPC_type, "tyrant");
 }

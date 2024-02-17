@@ -36,6 +36,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define	CG_SWINGSPEED		0.3f
 
 #include "animtable.h"
+#include "cg_mutators.h"
 
 extern qboolean WP_SaberBladeUseSecondBladeStyle( saberInfo_t *saber, int bladeNum );
 extern void WP_SaberSwingSound( gentity_t *ent, int saberNum, swingType_t swingType );
@@ -3724,6 +3725,10 @@ static void _PlayerFootStep( const vec3_t origin,
 			break;
 	}
 
+	if ( CG_IsTyrant(*cent) ) {
+		soundType = FOOTSTEP_TYRANT;
+	}
+
 	if (soundType < FOOTSTEP_TOTAL)
 	{
 	 	cgi_S_StartSound( NULL, cent->currentState.clientNum, CHAN_BODY, cgs.media.footsteps[soundType][Q_irand( 0, 3)] );
@@ -3789,7 +3794,7 @@ static void _PlayerFootStep( const vec3_t origin,
 extern vmCvar_t	cg_footsteps;
 static void CG_PlayerFootsteps( centity_t *const cent, footstepType_t footStepType )
 {
-	if ( cg_footsteps.integer == 0 )
+	if ( cg_footsteps.integer == 0 && !CG_IsTyrant(*cent) )
 	{
 		return;
 	}
