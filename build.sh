@@ -10,9 +10,16 @@ PROJECTS=(
 	-DBuildSPGame=ON
 )
 EXTRA_OPTS=(
-	-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 	-DCMAKE_INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX:-~/games/openjk}"
+	-DCMAKE_BUILD_TYPE=$BUILD_TYPE
 )
+if [ "${OS-}" != "Windows_NT" ]; then
+	# don't use make or compilation DB on winblows
+	EXTRA_OPTS+=(
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+		-G "Unix Makefiles"
+	)
+fi
 
 ARGS=("$@")
 for ((i = 0; i < ${#ARGS[@]}; i++)); do
@@ -30,10 +37,7 @@ for ((i = 0; i < ${#ARGS[@]}; i++)); do
 	esac
 done
 
-mkdir -p "build-$BUILD_TYPE"
-pushd "build-$BUILD_TYPE" >/dev/null && {
-	cmake -G "Unix Makefiles" "-DCMAKE_BUILD_TYPE=$BUILD_TYPE" "${PROJECTS[@]}" "${EXTRA_OPTS[@]}" ../
-	make "-j$(($(nproc || true) * 2))"
-	make install
-	popd >/dev/null
-}
+# mkdir -p "build-$BUILD_TYPE"
+cmake -B "build-$BUILD_TYPE" "${PROJECTS[@]}" "${EXTRA_OPTS[@]}"
+cmake --build "build-$BUILD_TYPE" --config "$BUILD_TYPE" --parallel
+cmake --install "build-$BUILD_TYPE" --config "$BUILD_TYPE"
