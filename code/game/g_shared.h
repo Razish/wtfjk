@@ -1286,7 +1286,6 @@ Ghoul2 Insert End
 		} inclementWeather;
 
 		struct {
-			vec3_t oldModelScale;
 			float scaleAmount;
 		} giants;
 
