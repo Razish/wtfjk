@@ -343,12 +343,12 @@ struct zalgoBoneInfo_t {
 	// constructed via gi.G2API_ListBones(&g_entities[0].ghoul2[g_entities[0].playerModel], 0);
 	// then replace: Bone \d+ Name (\w+)\nX pos (-?\d+\.\d+), Y pos (-?\d+\.\d+), Z pos (-?\d+\.\d+)\n
 	// with: { "$1", { $2, $3, $4 } },\n
-	{"model_root", true}, {"pelvis", true}, {"Motion", true}, {"lfemurYZ"},		{"lfemurX"},  {"ltibia"},	{"ltalus"},			{"rfemurYZ"}, {"rfemurX"},
-	{"rtibia"},			  {"rtalus"},		{"lower_lumbar"}, {"upper_lumbar"}, {"thoracic"}, {"cervical"}, {"cranium"},		{"ceyebrow"}, {"jaw"},
-	{"lblip2"},			  {"leye"},			{"rblip2"},		  {"ltlip2"},		{"rtlip2"},	  {"reye"},		{"rclavical"},		{"rhumerus"}, {"rhumerusX"},
-	{"rradius"},		  {"rradiusX"},		{"rhand"},		  {"r_d1_j1"},		{"r_d1_j2"},  {"r_d2_j1"},	{"r_d2_j2"},		{"r_d4_j1"},  {"r_d4_j2"},
-	{"rhang_tag_bone"},	  {"lclavical"},	{"lhumerus"},	  {"lhumerusX"},	{"lradius"},  {"lradiusX"}, {"lhand"},			{"l_d4_j1"},  {"l_d4_j2"},
-	{"l_d2_j1"},		  {"l_d2_j2"},		{"l_d1_j1"},	  {"l_d1_j2"},		{"ltail"},	  {"rtail"},	{"lhang_tag_bone"}, {"face"},
+	{"model_root", true}, {"pelvis"},	 {"Motion", true}, {"lfemurYZ"},	 {"lfemurX"},  {"ltibia"},	 {"ltalus"},		 {"rfemurYZ"}, {"rfemurX"},
+	{"rtibia"},			  {"rtalus"},	 {"lower_lumbar"}, {"upper_lumbar"}, {"thoracic"}, {"cervical"}, {"cranium"},		 {"ceyebrow"}, {"jaw"},
+	{"lblip2"},			  {"leye"},		 {"rblip2"},	   {"ltlip2"},		 {"rtlip2"},   {"reye"},	 {"rclavical"},		 {"rhumerus"}, {"rhumerusX"},
+	{"rradius"},		  {"rradiusX"},	 {"rhand"},		   {"r_d1_j1"},		 {"r_d1_j2"},  {"r_d2_j1"},	 {"r_d2_j2"},		 {"r_d4_j1"},  {"r_d4_j2"},
+	{"rhang_tag_bone"},	  {"lclavical"}, {"lhumerus"},	   {"lhumerusX"},	 {"lradius"},  {"lradiusX"}, {"lhand"},			 {"l_d4_j1"},  {"l_d4_j2"},
+	{"l_d2_j1"},		  {"l_d2_j2"},	 {"l_d1_j1"},	   {"l_d1_j2"},		 {"ltail"},	   {"rtail"},	 {"lhang_tag_bone"}, {"face"},
 };
 
 static void Begin_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉(void) {

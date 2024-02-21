@@ -21,7 +21,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 ===========================================================================
 */
 
+#include "bg_mutators.h"
 #include "cg_headers.h"
+#include "cgame/cg_local.h"
+#include "qcommon/q_math.h"
 
 #define	CG_PLAYERS_CPP
 #include "cg_media.h"
@@ -3794,6 +3797,12 @@ static void _PlayerFootStep( const vec3_t origin,
 extern vmCvar_t	cg_footsteps;
 static void CG_PlayerFootsteps( centity_t *const cent, footstepType_t footStepType )
 {
+	if (cg.mutators.state.activeMutator == MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉ && !Q_irand(0, 3)) {
+		int footBolt = (footStepType == FOOTSTEP_HEAVY_R || footStepType == FOOTSTEP_R) ? cent->gent->footRBolt : cent->gent->footLBolt;
+		theFxScheduler.RegisterEffect("scepter/beam");
+		CG_PlayEffectBolted("scepter/beam", cent->gent->playerModel, footBolt, cent->currentState.clientNum, cent->lerpOrigin, 500, qtrue);
+	}
+
 	if ( cg_footsteps.integer == 0 && !CG_IsTyrant(*cent) )
 	{
 		return;
@@ -7816,9 +7825,10 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 				CG_ForcePushBlur( cent->gent->client->renderInfo.headPoint, qtrue );
 			}
 
-			if ( cent->gent->client && cent->gent->client->ps.powerups[PW_SHOCKED] > cg.time )
-			{//being electrocuted
-				CG_ForceElectrocution( cent, ent.origin, tempAngles, cgs.media.boltShader );
+			if (cent->gent->client &&
+				(cent->gent->client->ps.powerups[PW_SHOCKED] > cg.time || (cg.mutators.state.activeMutator == MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉ && !Q_irand(0, 15)))) {
+				// being electrocuted
+				CG_ForceElectrocution(cent, ent.origin, tempAngles, cgs.media.boltShader);
 			}
 
 			if ( cent->gent->client->ps.eFlags & EF_FORCE_DRAINED
