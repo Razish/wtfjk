@@ -813,6 +813,7 @@ static void CG_OffsetThirdPersonView( void )
 	}
 
 	if (cg.mutators.state.activeMutator == MUTATOR_SECONDPERSONCAM) {
+		cg.mutators.secondpersoncam.foundEnt = ENTITYNUM_NONE;
 		for (centity_t &cent : cg_entities) {
 			if (!cent.currentValid || cent.currentState.eType != ET_PLAYER || !g_entities[cent.currentState.number].client || cent.currentState.number == 0 ||
 				g_entities[cent.currentState.number].health <= 0) {
@@ -842,6 +843,7 @@ static void CG_OffsetThirdPersonView( void )
 				}
 				VectorCopy(outAngles, cg.refdefViewAngles);
 
+				cg.mutators.secondpersoncam.foundEnt = cent.currentState.number;
 				return;
 			}
 		}

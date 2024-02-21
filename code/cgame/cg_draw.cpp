@@ -3988,8 +3988,9 @@ static void CG_Draw2D( void )
 		return;
 	}
 
-	if ( CG_RenderingFromMiscCamera())
-	{
+	if (cg.mutators.state.activeMutator == MUTATOR_SECONDPERSONCAM && cg.mutators.secondpersoncam.foundEnt != ENTITYNUM_NONE) {
+		CG_DrawPic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgi_R_RegisterShader("gfx/2d/workingCamera"));
+	} else if (CG_RenderingFromMiscCamera()) {
 		// purposely doing an early out when in a misc_camera, change it if needed.
 
 		// allowing center print when in camera mode, probably just an alpha thing - dmv
