@@ -26,6 +26,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #include "b_local.h"
 #include "anims.h"
+#include "b_public.h"
 #include "bg_mutators.h"
 #include "bg_public.h"
 #include "g_functions.h"
@@ -1857,6 +1858,23 @@ extern bool Pilot_MasterUpdate();
 
 void NPC_RunBehavior( int team, int bState )
 {
+
+	if (level.mutators.state.activeMutator == MUTATOR_FAMOUS) {
+		if (!NPC->mutators.famous.dirtyFlag) {
+			NPC->mutators.famous.dirtyFlag = true;
+			NPC->mutators.famous.npcScriptFlags = NPC->NPC->scriptFlags;
+			NPC->mutators.famous.goal = NPCInfo->goalEntity;
+		}
+		NPCInfo->goalEntity = &g_entities[0];
+		NPC->NPC->scriptFlags |= SCF_DONT_FIRE | SCF_RUNNING | SCF_FACE_MOVE_DIR;
+		NPC->NPC->scriptFlags &= ~SCF_CROUCHED;
+		NPC_MoveToGoal(qtrue);
+	} else if (NPC->mutators.famous.dirtyFlag) {
+		NPC->mutators.famous.dirtyFlag = false;
+		NPC->NPC->scriptFlags = NPC->mutators.famous.npcScriptFlags;
+		NPCInfo->goalEntity = NPC->mutators.famous.goal;
+	}
+
 	//
 	if ( bState == BS_CINEMATIC )
 	{

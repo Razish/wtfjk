@@ -13,7 +13,7 @@ enum mutator_e {
 	MUTATOR_FILMNOIR,			 // TODO: film noir
 	MUTATOR_JAWAINVASION,		 // TODO: jawas are spawned at nearby entities out of LoS, and behind the player
 	MUTATOR_PEACEANDQUIET,		 // TODO: hearing loss, complete with tinnitus
-	MUTATOR_FAMOUS,				 // TODO: all NPCs follow you
+	MUTATOR_FAMOUS,				 // all NPCs follow you (and don't shoot)
 	MUTATOR_ROSHINVASION,		 // all NPCs become rosh and taunt excessively
 	MUTATOR_SPLIT,				 // killing an enemy splits it into two smaller enemies
 	MUTATOR_DRUNK,				 // vision is warped, controls are occasionally inverted, enemy animations sped up
