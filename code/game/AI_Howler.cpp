@@ -39,7 +39,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #define HOWLER_PANIC_HEALTH	10
 
 extern void G_UcmdMoveForDir( gentity_t *self, usercmd_t *cmd, vec3_t dir );
-extern void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelIndex = 0 );
 extern int PM_AnimLength( int index, animNumber_t anim );
 extern qboolean NAV_DirSafe( gentity_t *self, vec3_t dir, float dist );
 extern void G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, float strength, qboolean breakSaberLock );

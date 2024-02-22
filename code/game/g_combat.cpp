@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 // g_combat.c
 
+#include "bg_mutators.h"
 #include "g_local.h"
 #include "b_local.h"
 #include "g_functions.h"
@@ -1886,7 +1887,6 @@ qboolean G_LimbLost( gentity_t *ent, int hitLoc )
 	}
 }
 
-extern qboolean G_GetRootSurfNameWithVariant( gentity_t *ent, const char *rootSurfName, char *returnSurfName, int returnSize );
 void G_RemoveWeaponsWithLimbs( gentity_t *ent, gentity_t *limb, int limbAnim )
 {
 	int		weaponModelNum = 0, checkAnim;
@@ -1965,7 +1965,7 @@ void G_RemoveWeaponsWithLimbs( gentity_t *ent, gentity_t *limb, int limbAnim )
 	}
 }
 
-static qboolean G_Dismember( gentity_t *ent, vec3_t point,
+qboolean G_Dismember( gentity_t *ent, vec3_t point,
 				 const char *limbBone, const char *rotateBone, const char *limbName,
 				 const char *limbCapName, const char *stubCapName, const char *limbTagName, const char *stubTagName,
 				 int limbAnim, float limbRollBase, float limbPitchBase,
@@ -6806,6 +6806,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, const
 		}
 		else
 		{
+			if (level.mutators.state.activeMutator == MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉ && targ->s.eType == ET_PLAYER && targ->NPC && targ->client->NPC_class != CLASS_VEHICLE) {
+				G_DismemberRandomLimb(*targ);
+			}
+
 			GEntity_PainFunc( targ, inflictor, attacker, point, take, mod, hitLoc );
 			if ( targ->s.number == 0 )
 			{//player run painscript

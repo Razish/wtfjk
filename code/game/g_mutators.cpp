@@ -93,19 +93,14 @@ static void Begin_Giants(void) {
 	for (auto &ent : g_entities) {
 		if (ent.inuse && ent.s.eType == ET_PLAYER && ent.NPC && ent.client->NPC_class != CLASS_VEHICLE) {
 			ent.mutators.giants.scaleAmount = flrand(3.0f, 8.0f);
-			VectorScale(ent.s.modelScale, ent.mutators.giants.scaleAmount, ent.s.modelScale);
-			// FIXME: this is wrong 😭
-			VectorScale(ent.mins, ent.mutators.giants.scaleAmount, ent.mins);
-			VectorScale(ent.maxs, ent.mutators.giants.scaleAmount, ent.maxs);
+			G_ScaleEntity(ent, ent.mutators.giants.scaleAmount);
 		}
 	}
 }
 static void End_Giants(void) {
 	for (auto &ent : g_entities) {
 		if (ent.inuse && ent.s.eType == ET_PLAYER && ent.NPC && ent.client->NPC_class != CLASS_VEHICLE && fabsf(ent.mutators.giants.scaleAmount) > 0.001f) {
-			VectorScale(ent.mins, 1.0f / ent.mutators.giants.scaleAmount, ent.mins);
-			VectorScale(ent.maxs, 1.0f / ent.mutators.giants.scaleAmount, ent.maxs);
-			VectorScale(ent.s.modelScale, 1.0f / ent.mutators.giants.scaleAmount, ent.s.modelScale);
+			G_ScaleEntity(ent, 1.0f / ent.mutators.giants.scaleAmount);
 		}
 	}
 }

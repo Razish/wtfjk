@@ -2054,3 +2054,146 @@ void G_SetBoltSurfaceRemoval( const int entNum, const int modelIndex, const int 
 Ghoul2 Insert End
 */
 
+void G_ScaleEntity(gentity_t &ent, float scaleAmount) {
+	VectorScale(ent.s.modelScale, scaleAmount, ent.s.modelScale);
+
+	// FIXME: this is wrong 😭
+	// VectorScale(ent.mins, scaleAmount, ent.mins);
+	// VectorScale(ent.maxs, scaleAmount, ent.maxs);
+
+	ent.maxs[0] *= scaleAmount;
+	ent.mins[0] *= scaleAmount;
+	ent.maxs[1] *= scaleAmount;
+	ent.mins[1] *= scaleAmount;
+
+	// scale the z axis and adjust origin accordingly
+	ent.maxs[2] *= scaleAmount;
+	float oldMins2 = ent.mins[2];
+	ent.mins[2] *= scaleAmount;
+	ent.s.origin[2] += (oldMins2 - ent.mins[2]);
+
+	G_SetOrigin(&ent, ent.s.origin);
+}
+
+void G_DismemberRandomLimb(gentity_t &ent) {
+	vec3_t point;
+	VectorCopy(ent.currentOrigin, point);
+	const int damage = 0; // this is ignored
+	const int hitLocation = Q_irand(HL_NONE, HL_MAX);
+	const char *limbBone = NULL, *rotateBone = NULL, *limbTagName = NULL, *stubTagName = NULL;
+	int anim = -1;
+	float limbRollBase = 0, limbPitchBase = 0;
+	char limbName[MAX_QPATH], stubName[MAX_QPATH];
+	char limbCapName[MAX_QPATH], stubCapName[MAX_QPATH];
+
+	switch (hitLocation) {
+	case HL_FOOT_RT:
+	case HL_LEG_RT:
+		limbBone = "rtibia";
+		rotateBone = "rtalus";
+		G_GetRootSurfNameWithVariant(&ent, "r_leg", limbName, sizeof(limbName));
+		G_GetRootSurfNameWithVariant(&ent, "hips", stubName, sizeof(stubName));
+		Com_sprintf(limbCapName, sizeof(limbCapName), "%s_cap_hips", limbName);
+		Com_sprintf(stubCapName, sizeof(stubCapName), "%s_cap_r_leg", stubName);
+		limbTagName = "*r_leg_cap_hips";
+		stubTagName = "*hips_cap_r_leg";
+		G_GetBoltPosition(&ent, ent.kneeRBolt, point);
+		anim = BOTH_DISMEMBER_RLEG;
+		break;
+	case HL_FOOT_LT:
+	case HL_LEG_LT:
+		limbBone = "ltibia";
+		rotateBone = "ltalus";
+		G_GetRootSurfNameWithVariant(&ent, "l_leg", limbName, sizeof(limbName));
+		G_GetRootSurfNameWithVariant(&ent, "hips", stubName, sizeof(stubName));
+		Com_sprintf(limbCapName, sizeof(limbCapName), "%s_cap_hips", limbName);
+		Com_sprintf(stubCapName, sizeof(stubCapName), "%s_cap_l_leg", stubName);
+		limbTagName = "*l_leg_cap_hips";
+		stubTagName = "*hips_cap_l_leg";
+		anim = BOTH_DISMEMBER_LLEG;
+		G_GetBoltPosition(&ent, ent.kneeLBolt, point);
+		break;
+	case HL_WAIST:
+		limbBone = "pelvis";
+		rotateBone = "thoracic";
+		Q_strncpyz(limbName, "torso", sizeof(limbName));
+		Q_strncpyz(limbCapName, "torso_cap_hips", sizeof(limbCapName));
+		Q_strncpyz(stubCapName, "hips_cap_torso", sizeof(stubCapName));
+		limbTagName = "*torso_cap_hips";
+		stubTagName = "*hips_cap_torso";
+		anim = BOTH_DISMEMBER_TORSO1;
+		G_GetBoltPosition(&ent, ent.torsoBolt, point);
+		break;
+	case HL_CHEST_RT:
+	case HL_ARM_RT:
+	case HL_BACK_RT:
+	case HL_CHEST:
+	case HL_BACK:
+		limbBone = "rhumerus";
+		rotateBone = "rradius";
+		G_GetRootSurfNameWithVariant(&ent, "r_arm", limbName, sizeof(limbName));
+		G_GetRootSurfNameWithVariant(&ent, "torso", stubName, sizeof(stubName));
+		Com_sprintf(limbCapName, sizeof(limbCapName), "%s_cap_torso", limbName);
+		Com_sprintf(stubCapName, sizeof(stubCapName), "%s_cap_r_arm", stubName);
+		limbTagName = "*r_arm_cap_torso";
+		stubTagName = "*torso_cap_r_arm";
+		anim = BOTH_DISMEMBER_RARM;
+		G_GetBoltPosition(&ent, ent.chestBolt, point);
+		break;
+	case HL_CHEST_LT:
+	case HL_ARM_LT:
+	case HL_BACK_LT:
+		limbBone = "lhumerus";
+		rotateBone = "lradius";
+		G_GetRootSurfNameWithVariant(&ent, "l_arm", limbName, sizeof(limbName));
+		G_GetRootSurfNameWithVariant(&ent, "torso", stubName, sizeof(stubName));
+		Com_sprintf(limbCapName, sizeof(limbCapName), "%s_cap_torso", limbName);
+		Com_sprintf(stubCapName, sizeof(stubCapName), "%s_cap_l_arm", stubName);
+		limbTagName = "*l_arm_cap_torso";
+		stubTagName = "*torso_cap_l_arm";
+		anim = BOTH_DISMEMBER_LARM;
+		G_GetBoltPosition(&ent, ent.chestBolt, point);
+		break;
+	case HL_HAND_RT:
+		limbBone = "rradiusX";
+		rotateBone = "rhand";
+		G_GetRootSurfNameWithVariant(&ent, "r_hand", limbName, sizeof(limbName));
+		G_GetRootSurfNameWithVariant(&ent, "r_arm", stubName, sizeof(stubName));
+		Com_sprintf(limbCapName, sizeof(limbCapName), "%s_cap_r_arm", limbName);
+		Com_sprintf(stubCapName, sizeof(stubCapName), "%s_cap_r_hand", stubName);
+		limbTagName = "*r_hand_cap_r_arm";
+		stubTagName = "*r_arm_cap_r_hand";
+		anim = BOTH_DISMEMBER_RARM;
+		G_GetBoltPosition(&ent, ent.elbowRBolt, point);
+		break;
+	case HL_HAND_LT:
+		limbBone = "lradiusX";
+		rotateBone = "lhand";
+		G_GetRootSurfNameWithVariant(&ent, "l_hand", limbName, sizeof(limbName));
+		G_GetRootSurfNameWithVariant(&ent, "l_arm", stubName, sizeof(stubName));
+		Com_sprintf(limbCapName, sizeof(limbCapName), "%s_cap_l_arm", limbName);
+		Com_sprintf(stubCapName, sizeof(stubCapName), "%s_cap_l_hand", stubName);
+		limbTagName = "*l_hand_cap_l_arm";
+		stubTagName = "*l_arm_cap_l_hand";
+		anim = BOTH_DISMEMBER_LARM;
+		G_GetBoltPosition(&ent, ent.elbowRBolt, point);
+		break;
+	case HL_HEAD:
+		limbBone = "cervical";
+		rotateBone = "cranium";
+		Q_strncpyz(limbName, "head", sizeof(limbName));
+		Q_strncpyz(limbCapName, "head_cap_torso", sizeof(limbCapName));
+		Q_strncpyz(stubCapName, "torso_cap_head", sizeof(stubCapName));
+		limbTagName = "*head_cap_torso";
+		stubTagName = "*torso_cap_head";
+		anim = BOTH_DISMEMBER_HEAD1;
+		limbRollBase = -1;
+		limbPitchBase = -1;
+		G_GetBoltPosition(&ent, ent.headBolt, point);
+		break;
+	default:
+		break;
+	}
+	G_Dismember(&ent, point, limbBone, rotateBone, limbName, limbCapName, stubCapName, limbTagName, stubTagName, anim, limbRollBase, limbPitchBase, damage,
+				hitLocation);
+}

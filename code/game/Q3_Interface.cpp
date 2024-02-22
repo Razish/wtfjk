@@ -73,7 +73,6 @@ extern void JET_FlyStart( gentity_t *self );
 extern void JET_FlyStop( gentity_t *self );
 extern void Rail_LockCenterOfTrack(const char* trackName);
 extern void Rail_UnLockCenterOfTrack(const char* trackName);
-extern void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelIndex = 0 );
 extern qboolean G_DoDismemberment( gentity_t *self, vec3_t point, int mod, int damage, int hitLoc, qboolean force = qfalse );
 
 extern int	BMS_START;
