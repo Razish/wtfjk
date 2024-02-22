@@ -1,0 +1,8 @@
+sand_creature_bouncy {
+	playermodel sand_creature
+	snd sand_creature
+	class CLASS_SAND_CREATURE
+	weapon WP_NONE
+	height 78
+	width 18
+}

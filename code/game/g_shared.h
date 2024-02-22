@@ -1286,7 +1286,6 @@ Ghoul2 Insert End
 		} inclementWeather;
 
 		struct {
-			vec3_t oldModelScale;
 			float scaleAmount;
 		} giants;
 
@@ -1296,6 +1295,12 @@ Ghoul2 Insert End
 			char customExtraSoundDir[MAX_QPATH];
 			char customJediSoundDir[MAX_QPATH];
 		} bouncysandcreatures;
+
+		struct {
+			bool dirtyFlag;
+			uint32_t npcScriptFlags;
+			gentity_t *goal;
+		} famous;
 	} mutators;
 
 	void sg_export(

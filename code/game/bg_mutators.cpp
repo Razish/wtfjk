@@ -28,6 +28,7 @@ const stringID_table_t mutatorStrings[NUM_MUTATORS + 1] = {
 	ENUM2STRING(MUTATOR_SECONDPERSONCAM),
 	ENUM2STRING(MUTATOR_PREDATOR),
 	ENUM2STRING(MUTATOR_TYRANT),
+	ENUM2STRING(MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉),
 	{NULL, -1}
 	// clang-format on
 };

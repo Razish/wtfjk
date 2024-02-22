@@ -27,3 +27,16 @@ if(BuildSPGame)
 endif(BuildSPGame)
 
 # MARKER: add rd-badcandy
+
+if(BuildAssets)
+	include(InstallZIP)
+	file(GLOB_RECURSE SPAssetsFiles CONFIGURE_DEPENDS "${SPAssetsDir}/**/*")
+	create_zip(${AssetsPk3} "${SPAssetsFiles}" ${SPAssetsDir})
+	add_custom_target(SPAssets
+		ALL
+		DEPENDS ${AssetsPk3})
+	install(
+		FILES ${SPAssetsDir}/${AssetsPk3}
+		DESTINATION "${JKAInstallDir}/${FSGame}"
+		COMPONENT ${JKASPAssetsComponent})
+endif()

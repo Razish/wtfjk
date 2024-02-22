@@ -21,7 +21,8 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment ver
 
 set(InOpenJK ON)
 
-set(ProjectName "OpenJK" CACHE STRING "Project Name")
+set(ProjectName "WtfJK" CACHE STRING "Project Name")
+set(FSGame "wtfjk" CACHE STRING "fs_game folder")
 project(${ProjectName})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -36,6 +37,8 @@ option(BuildSPGame "Whether to create projects for the SP gamecode (jagamex86.dl
 
 option(BuildJK2SPGame "Whether to create projects for the jk2 sp gamecode mod (jk2gamex86.dll)" OFF)
 # MARKER: add BuildJK2SPRdBadCandy
+
+option(BuildAssets "Whether to create assets PK3 for SP (wtfjk.pk3)" ON)
 
 # Configure the use of bundled libraries.  By default, we assume the user is on
 # a platform that does not require any bundling.
@@ -120,6 +123,7 @@ set(SPGame "jagame${Architecture}")
 # MARKER: add SPRDBadCandyRenderer
 set(JK2SPGame "jospgame${Architecture}")
 # MARKER: add JK2SPRDBadCandyRenderer
+set(AssetsPk3 "wtfjk.pk3")
 # Library names
 set(SharedLib "shared")
 
@@ -129,6 +133,7 @@ set(SharedLib "shared")
 #
 #=============================================================================
 set(SPDir "${CMAKE_SOURCE_DIR}/code")
+set(SPAssetsDir "${CMAKE_CURRENT_LIST_DIR}/assets")
 set(JK2SPDir "${CMAKE_SOURCE_DIR}/codeJK2")
 set(SharedDir ${CMAKE_SOURCE_DIR}/shared)
 set(OpenJKLibDir "${CMAKE_SOURCE_DIR}/lib")
@@ -174,6 +179,8 @@ if(MSVC)
 
 	# We don't try to control symbol visibility under MSVC.
 	set(OPENJK_VISIBILITY_FLAGS "")
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
 elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang"))
 	# I hope this doesn't come back to bite me in the butt later on.
 	# Realistically though, can the C and CXX compilers be different?
@@ -239,6 +246,7 @@ elseif (("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU") OR ("${CMAKE_C_COMPILER_ID}" M
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign")
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
 		endif()
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnormalized=none")
 	elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")

@@ -1762,7 +1762,6 @@ gentity_t *NPC_Spawn_Do( gentity_t *ent, qboolean fullSpawnNow )
 
 	if (level.mutators.state.activeMutator == MUTATOR_GIANTS) {
 		newent->mutators.giants.scaleAmount = flrand(4.0f, 12.0f);
-		VectorCopy(newent->s.modelScale, newent->mutators.giants.oldModelScale);
 		VectorScale(newent->s.modelScale, newent->mutators.giants.scaleAmount, newent->s.modelScale);
 	}
 

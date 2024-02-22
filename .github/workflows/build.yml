@@ -147,12 +147,17 @@ jobs:
 
   macos:
     name: macOS ${{ matrix.arch }} ${{ matrix.build_type }}
-    runs-on: macos-12
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        arch: [x86_64]
+        runner: [macos-12, macos-14]
         build_type: [Debug, Release]
+        include:
+          - runner: macos-12
+            arch: x86_64
+          - runner: macos-14
+            arch: arm64
 
     steps:
       - uses: actions/checkout@v3
@@ -227,12 +232,14 @@ jobs:
           mv ./WtfJK-linux-x86-Release/* WtfJK-linux-x86.tar.gz
           mv ./WtfJK-linux-x86_64-Release/* WtfJK-linux-x86_64.tar.gz
           mv ./WtfJK-macos-x86_64-Release/* WtfJK-macos-x86_64.tar.gz
+          mv ./WtfJK-macos-arm64-Release-Non-Portable/* WtfJK-macos-arm64.tar.gz
 
           7z a -r WtfJO-windows-x86.zip ./WtfJO-windows-x86-Release/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
           7z a -r WtfJO-windows-x86_64.zip ./WtfJO-windows-x86_64-Release/* '-x!msvcp*.*' '-x!vcruntime*.*' '-x!concrt*.*'
           mv ./WtfJO-linux-x86-Release/* WtfJO-linux-x86.tar.gz
           mv ./WtfJO-linux-x86_64-Release/* WtfJO-linux-x86_64.tar.gz
           mv ./WtfJO-macos-x86_64-Release/* WtfJO-macos-x86_64.tar.gz
+          mv ./WtfJO-macos-arm64-Release-Non-Portable/* WtfJO-macos-arm64.tar.gz
 
       - name: Create latest build
         uses: marvinpinto/action-automatic-releases@latest
@@ -273,6 +280,10 @@ jobs:
             artifact_name: WtfJK-macos-x86_64.tar.gz
             zip: false
 
+          - artifact_dir: WtfJK-macos-arm64-Release-Non-Portable
+            artifact_name: WtfJK-macos-arm64.tar.gz
+            zip: false
+
           - artifact_dir: WtfJO-windows-x86-Release/JediOutcast
             artifact_name: WtfJO-windows-x86.zip
             zip: true
@@ -291,6 +302,10 @@ jobs:
 
           - artifact_dir: WtfJO-macos-x86_64-Release
             artifact_name: WtfJO-macos-x86_64.tar.gz
+            zip: false
+
+          - artifact_dir: WtfJO-macos-arm64-Release
+            artifact_name: WtfJO-macos-arm64.tar.gz
             zip: false
 
     steps:

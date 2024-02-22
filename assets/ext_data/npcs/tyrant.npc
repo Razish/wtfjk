@@ -1,0 +1,31 @@
+tyrant {
+	playerModel desann
+	snd desann
+	sndcombat desann
+	sndjedi desann
+	playerTeam TEAM_ENEMY
+	enemyTeam TEAM_PLAYER
+	class CLASS_DESANN
+	weapon WP_MELEE
+	rank captain
+	customSkin tyrant
+
+	height 78
+	scale 175
+	width 18
+	movetype walk
+	walkSpeed 190
+
+	health 5000
+	crouchheight 42
+	hfov 160
+	vfov 160
+	yawSpeed 120
+
+	aggression 5
+	aim 5
+	evasion 5
+	intelligence 5
+	move 5
+	reactions 5
+}

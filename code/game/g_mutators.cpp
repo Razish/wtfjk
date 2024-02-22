@@ -32,8 +32,11 @@ static const std::vector<mutator_e> allowedMutators = {
 	MUTATOR_SECONDPERSONCAM,
 	MUTATOR_PREDATOR,
 	MUTATOR_TYRANT,
+	MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉,
 	// clang-format on
 };
+
+static const uint32_t setBoneFlags = BONE_ANGLES_POSTMULT;
 
 // pick a random mutator that we're not currently on
 static mutator_e SelectRandomMutator() {
@@ -90,20 +93,14 @@ static void Begin_Giants(void) {
 	for (auto &ent : g_entities) {
 		if (ent.inuse && ent.s.eType == ET_PLAYER && ent.NPC && ent.client->NPC_class != CLASS_VEHICLE) {
 			ent.mutators.giants.scaleAmount = flrand(3.0f, 8.0f);
-			VectorCopy(ent.s.modelScale, ent.mutators.giants.oldModelScale);
-			VectorScale(ent.s.modelScale, ent.mutators.giants.scaleAmount, ent.s.modelScale);
-			// FIXME: this is wrong 😭
-			VectorScale(ent.mins, ent.mutators.giants.scaleAmount, ent.mins);
-			VectorScale(ent.maxs, ent.mutators.giants.scaleAmount, ent.maxs);
+			G_ScaleEntity(ent, ent.mutators.giants.scaleAmount);
 		}
 	}
 }
 static void End_Giants(void) {
 	for (auto &ent : g_entities) {
 		if (ent.inuse && ent.s.eType == ET_PLAYER && ent.NPC && ent.client->NPC_class != CLASS_VEHICLE && fabsf(ent.mutators.giants.scaleAmount) > 0.001f) {
-			VectorScale(ent.mins, 1.0f / ent.mutators.giants.scaleAmount, ent.mins);
-			VectorScale(ent.maxs, 1.0f / ent.mutators.giants.scaleAmount, ent.maxs);
-			VectorCopy(ent.mutators.giants.oldModelScale, ent.s.modelScale);
+			G_ScaleEntity(ent, 1.0f / ent.mutators.giants.scaleAmount);
 		}
 	}
 }
@@ -206,8 +203,15 @@ static void Begin_BouncySandCreatures(void) {
 	auto &self = g_entities[0];
 	G_ChangePlayerModel(&self, "sand_creature_bouncy");
 
+	// scale us down
 	const float scale = 0.2f;
 	VectorSet(self.s.modelScale, scale, scale, scale);
+
+	// turn us upside down
+	CGhoul2Info *g2 = &self.ghoul2[self.playerModel];
+	vec3_t desiredAngles = {0, 0, 180};
+	const int blendTime = (int)(1000.0f / g_sv_fps->value);
+	gi.G2API_SetBoneAnglesIndex(g2, self.rootBone, desiredAngles, setBoneFlags, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, blendTime, level.time);
 
 	// override sounds 🫤 these are gi.Free'd
 	if (self.client->clientInfo.customBasicSoundDir) {
@@ -253,8 +257,14 @@ static void End_BouncySandCreatures(void) {
 	auto &self = g_entities[0];
 	G_ChangePlayerModel(&self, "player");
 
+	// scale us back up
 	const float scale = 1.0f;
 	VectorSet(self.s.modelScale, scale, scale, scale);
+
+	// stand us upright
+	CGhoul2Info *g2 = &self.ghoul2[self.playerModel];
+	const int blendTime = (int)(1000.0f / g_sv_fps->value);
+	gi.G2API_SetBoneAnglesIndex(g2, self.rootBone, vec3_origin, setBoneFlags, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, blendTime, level.time);
 
 	if (self.client->clientInfo.customBasicSoundDir) {
 		gi.Free(self.client->clientInfo.customBasicSoundDir);
@@ -320,6 +330,85 @@ static void Begin_Tyrant(void) {
 	}
 }
 
+struct zalgoBoneInfo_t {
+	const char *boneName;
+	bool ignore;
+} zalgoBoneInfo[53] = {
+	// constructed via gi.G2API_ListBones(&g_entities[0].ghoul2[g_entities[0].playerModel], 0);
+	// then replace: Bone \d+ Name (\w+)\nX pos (-?\d+\.\d+), Y pos (-?\d+\.\d+), Z pos (-?\d+\.\d+)\n
+	// with: { "$1", { $2, $3, $4 } },\n
+	{"model_root", true}, {"pelvis"},	 {"Motion", true}, {"lfemurYZ"},	 {"lfemurX"},  {"ltibia"},	 {"ltalus"},		 {"rfemurYZ"}, {"rfemurX"},
+	{"rtibia"},			  {"rtalus"},	 {"lower_lumbar"}, {"upper_lumbar"}, {"thoracic"}, {"cervical"}, {"cranium"},		 {"ceyebrow"}, {"jaw"},
+	{"lblip2"},			  {"leye"},		 {"rblip2"},	   {"ltlip2"},		 {"rtlip2"},   {"reye"},	 {"rclavical"},		 {"rhumerus"}, {"rhumerusX"},
+	{"rradius"},		  {"rradiusX"},	 {"rhand"},		   {"r_d1_j1"},		 {"r_d1_j2"},  {"r_d2_j1"},	 {"r_d2_j2"},		 {"r_d4_j1"},  {"r_d4_j2"},
+	{"rhang_tag_bone"},	  {"lclavical"}, {"lhumerus"},	   {"lhumerusX"},	 {"lradius"},  {"lradiusX"}, {"lhand"},			 {"l_d4_j1"},  {"l_d4_j2"},
+	{"l_d2_j1"},		  {"l_d2_j2"},	 {"l_d1_j1"},	   {"l_d1_j2"},		 {"ltail"},	   {"rtail"},	 {"lhang_tag_bone"}, {"face"},
+};
+
+static void Begin_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉(void) {
+	Com_Printf("...........*UHWHН!hhhhН!?M88WHXХWWWWSW$o\n");
+	Com_Printf(".......X*#M@$Н!eeeeНXНM$$$$$$WWxХWWW9S0\n");
+	Com_Printf("…...ХН!Н!Н!?HН..ХН$Н$$$$$$$$$$8XХDDFDFW9W$\n");
+	Com_Printf("....Н!f$$$$gХhН!jkgfХ~Н$Н#$$$$$$$$$$8XХKKW9W$,\n");
+	Com_Printf("....ХНgХ:НHНHHHfg~iU$XН?R$$$$$$$$MMНGG$9$R$$\n");
+	Com_Printf("....~НgН!Н!df$$$$$JXW$$$UН!?$$$$$$RMMНLFG$9$$$\n");
+	Com_Printf("......НХdfgdfghtХНM\"T#$$$$WX??#MRRMMMН$$$$99$$\n");
+	Com_Printf("......~?W…fiW*`........`\"#$$$$8Н!Н!?WWW?Н!J$99999$$$\n");
+	Com_Printf("...........M$$$$.............`\"T#$T~Н8$WUXUQ$$$$$99$9$$\n");
+	Com_Printf("...........~#$$$mХ.............~Н~$$$?$$$$$$$F$$$990$0\n");
+	Com_Printf("..............~T$$$$8xx......xWWFW~##*\"''\"\"''\"I**9999о\n");
+	Com_Printf("...............$$$.P$T#$$@@W@*/**$$.............,,*90о\n");
+	Com_Printf(".............$$$L!?$$.XXХXUW....../....$$,,,,....,,ХJ;09*\n");
+	Com_Printf("............$$$.......LM$$$$Ti......../.....n+НHFG$9$*\n");
+	Com_Printf("..........$$$H.Нu....\"\"$$B$$MEb!MХUНT$$0\n");
+	Com_Printf("............W$@WTL...\"\"*$$$W$TH$Н$$0\n");
+	Com_Printf("..............?$$$B$Wu,,''***PF~***$/ ***0\n");
+	Com_Printf("...................*$$g$$$B$$eeeХWP0\n");
+	Com_Printf("........................\"*0$$$$M$$00F'' \n");
+}
+
+static void Think_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉(void) {
+	for (auto &ent : g_entities) {
+		if (!ent.inuse || ent.s.eType != ET_PLAYER || !ent.ghoul2.size()) {
+			continue;
+		}
+		CGhoul2Info *g2 = &ent.ghoul2[ent.playerModel];
+		CGhoul2Info *g2First = &ent.ghoul2[0];
+		const int blendTime = (int)(1000.0f / g_sv_fps->value);
+		vec3_t desiredAngles = {};
+		desiredAngles[PITCH] = AngleNormalize360(level.time / 20.0f);
+		desiredAngles[YAW] = AngleNormalize360((level.time + 250) / 30.0f);
+		desiredAngles[ROLL] = AngleNormalize360((level.time + 500) / 10.0f);
+		for (const auto &bone : zalgoBoneInfo) {
+			if (bone.ignore) {
+				continue;
+			}
+			const int boneIndex = gi.G2API_GetBoneIndex(g2First, bone.boneName, qtrue);
+			if (boneIndex != -1) {
+				gi.G2API_SetBoneAnglesIndex(g2, boneIndex, desiredAngles, setBoneFlags, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, blendTime, level.time);
+			}
+		}
+	}
+}
+
+static void End_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉(void) {
+	const int blendTime = (int)(1000.0f / g_sv_fps->value);
+
+	for (auto &ent : g_entities) {
+		if (!ent.inuse || ent.s.eType != ET_PLAYER || !ent.ghoul2.size()) {
+			continue;
+		}
+		CGhoul2Info *g2 = &ent.ghoul2[ent.playerModel];
+		CGhoul2Info *g2First = &ent.ghoul2[0];
+		for (const auto &bone : zalgoBoneInfo) {
+			const int boneIndex = gi.G2API_GetBoneIndex(g2First, bone.boneName, qtrue);
+			if (boneIndex != -1) {
+				gi.G2API_SetBoneAnglesIndex(g2, boneIndex, vec3_origin, setBoneFlags, POSITIVE_Y, POSITIVE_Z, POSITIVE_X, NULL, blendTime, level.time);
+			}
+		}
+	}
+}
+
 static const struct mutatorFuncs_t {
 	void (*begin)(void);
 	void (*think)(void);
@@ -345,6 +434,7 @@ static const struct mutatorFuncs_t {
 	{nullptr, nullptr, nullptr},								   // MUTATOR_SECONDPERSONCAM
 	{nullptr, nullptr, nullptr},								   // MUTATOR_PREDATOR
 	{Begin_Tyrant, nullptr, nullptr},							   // MUTATOR_TYRANT
+	{Begin_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉, Think_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉, End_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉},				   // MUTATOR_H̸̜́Ḛ̸̀_̵̯́C̷̯͘Õ̵͖M̷̩̂Ḙ̵̅S̸͚̉
 };
 
 void Mutator_CheckUpdate() {

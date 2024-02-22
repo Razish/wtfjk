@@ -383,6 +383,9 @@ extern	cvar_t	*g_ICARUSDebug;
 extern cvar_t	*g_npcdebug;
 
 extern	cvar_t	*g_allowBunnyhopping;
+
+extern	cvar_t	*g_sv_fps;
+
 extern gentity_t *player;
 //
 // g_spawn.c
@@ -742,10 +745,17 @@ char *G_AddSpawnVarToken(const char *string);
 int G_CheckLedgeDive(gentity_t *self, float checkDist, const vec3_t checkVel, qboolean tryOpposite, qboolean tryPerp);
 int G_FindConfigstringIndex(const char *name, int start, int max, qboolean create);
 qboolean G_CallSpawn(gentity_t *ent);
+qboolean G_Dismember(gentity_t *ent, vec3_t point, const char *limbBone, const char *rotateBone, const char *limbName, const char *limbCapName,
+					 const char *stubCapName, const char *limbTagName, const char *stubTagName, int limbAnim, float limbRollBase, float limbPitchBase,
+					 int damage, int hitLoc);
+void G_DismemberRandomLimb(gentity_t &ent);
+qboolean G_GetRootSurfNameWithVariant(gentity_t *ent, const char *rootSurfName, char *returnSurfName, int returnSize);
 qboolean NPC_ParseParms(const char *NPCName, gentity_t *NPC);
 void CG_RegisterNPCCustomSounds(clientInfo_t *ci);
 void G_ChangePlayerModel(gentity_t *ent, const char *newModel);
+void G_GetBoltPosition(gentity_t *self, int boltIndex, vec3_t pos, int modelIndex = 0);
 void G_RemovePlayerModel(gentity_t *ent);
+void G_ScaleEntity(gentity_t &ent, float scaleAmount);
 void G_SetG2PlayerModel(gentity_t *const ent, const char *modelName, const char *customSkin, const char *surfOff, const char *surfOn);
 void G_SpawnGEntityFromSpawnVars(void);
 void G_SpeechEvent(gentity_t *self, int event);

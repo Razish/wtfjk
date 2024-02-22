@@ -229,6 +229,8 @@ cvar_t	*g_broadsword;
 
 cvar_t	*g_allowBunnyhopping;
 
+cvar_t	*g_sv_fps;
+
 qboolean	stop_icarus = qfalse;
 
 extern char *G_GetLocationForEnt( gentity_t *ent );
@@ -702,6 +704,8 @@ void G_InitCvars( void ) {
 	g_broadsword = gi.cvar( "broadsword", "1", 0);
 
 	g_allowBunnyhopping = gi.cvar( "g_allowBunnyhopping", "0", CVAR_ARCHIVE );
+
+	g_sv_fps = gi.cvar( "sv_fps", "", CVAR_TEMP );
 
 	gi.cvar( "tier_storyinfo", "0", CVAR_ROM|CVAR_SAVEGAME|CVAR_NORESTART);
 	gi.cvar( "tiers_complete", "", CVAR_ROM|CVAR_SAVEGAME|CVAR_NORESTART);

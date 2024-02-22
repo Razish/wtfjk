@@ -33,6 +33,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include "../game/wp_saber.h"
 #include "../game/g_vehicles.h"
 #include "cgame/cg_local.h"
+#include "g_local.h"
 #include "g_shared.h"
 #include "qcommon/q_math.h"
 #include "qcommon/q_shared.h"
@@ -813,6 +814,8 @@ static void CG_OffsetThirdPersonView( void )
 	}
 
 	if (cg.mutators.state.activeMutator == MUTATOR_SECONDPERSONCAM) {
+		cg.mutators.secondpersoncam.foundEnt = ENTITYNUM_NONE;
+		float bestDistance = Q3_INFINITE;
 		for (centity_t &cent : cg_entities) {
 			if (!cent.currentValid || cent.currentState.eType != ET_PLAYER || !g_entities[cent.currentState.number].client || cent.currentState.number == 0 ||
 				g_entities[cent.currentState.number].health <= 0) {
@@ -829,7 +832,6 @@ static void CG_OffsetThirdPersonView( void )
 					 MASK_OPAQUE | CONTENTS_TERRAIN | CONTENTS_SHOTCLIP | CONTENTS_BODY | CONTENTS_ITEM, G2_NOCOLLIDE, 10);
 			if (!tr.allsolid && !tr.startsolid && tr.entityNum == 0) {
 				// they can see us
-				VectorCopy(eyePos, cg.refdef.vieworg);
 
 				// calculate the direction from eyePos -> self
 				vec3_t dir;
@@ -840,11 +842,19 @@ static void CG_OffsetThirdPersonView( void )
 				for (int i = 0; i < 3; i++) {
 					outAngles[i] = AngleNormalize180(outAngles[i]);
 				}
-				VectorCopy(outAngles, cg.refdefViewAngles);
 
-				return;
+				// are they the closest NPC to us?
+				const float distance = Distance(playerEyes, eyePos);
+				if (distance < bestDistance) {
+					// this is the best we have so far
+					VectorCopy(eyePos, cg.refdef.vieworg);
+					VectorCopy(outAngles, cg.refdefViewAngles);
+					cg.mutators.secondpersoncam.foundEnt = cent.currentState.number;
+					bestDistance = distance;
+				}
 			}
 		}
+		return;
 	}
 	if ( !cg.renderingThirdPerson && (cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE) )
 	{// First person saber

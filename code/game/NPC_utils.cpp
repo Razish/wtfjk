@@ -1550,7 +1550,7 @@ void G_CheckCharmed( gentity_t *self )
 
 }
 
-void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelIndex = 0 )
+void G_GetBoltPosition( gentity_t *self, int boltIndex, vec3_t pos, int modelIndex )
 {
 	if ( !self || !self->ghoul2.size() )
 	{

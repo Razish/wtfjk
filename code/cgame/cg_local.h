@@ -516,6 +516,9 @@ Ghoul2 Insert End
 
 	struct {
 		mutatorState_t state;
+		struct {
+			int foundEnt;
+		} secondpersoncam;
 	} mutators;
 } cg_t;
 
